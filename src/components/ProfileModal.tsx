@@ -27,6 +27,7 @@ export interface ProfileModalProps {
   onNavigateOrders?: () => void;
   onNavigateWishlist?: () => void;
   onNavigateCart?: () => void;
+  onOpenNotificationPreferences?: () => void;
 }
 
 export const ProfileModal: React.FC<ProfileModalProps> = ({
@@ -38,6 +39,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
   onNavigateOrders,
   onNavigateWishlist,
   onNavigateCart,
+  onOpenNotificationPreferences,
 }) => {
   const { top: topInset, bottom: bottomInset } = useAppInsets();
 
@@ -243,15 +245,18 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
 
             <TouchableOpacity
               style={styles.actionRow}
-              onPress={() => handleFeatureUnavailable('Notification Preferences')}
+              onPress={() => {
+                onClose();
+                onOpenNotificationPreferences?.();
+              }}
               activeOpacity={0.7}>
               <View style={styles.actionRowLeft}>
                 <View style={styles.actionIconBox}>
                   <AppIcon name="bell" size={16} color={Colors.forestDark} />
                 </View>
                 <View>
-                  <Text style={styles.actionRowTitle}>Order Notifications</Text>
-                  <Text style={styles.actionRowSub}>Delivery updates & dispatch alerts</Text>
+                  <Text style={styles.actionRowTitle}>Notification Preferences</Text>
+                  <Text style={styles.actionRowSub}>Doctors, nannies, deliveries & push alerts</Text>
                 </View>
               </View>
               <AppIcon name="chevron-right" size={14} color={Colors.textMuted} />

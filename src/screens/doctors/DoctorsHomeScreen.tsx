@@ -25,6 +25,7 @@ import { DoctorProfileModal } from './DoctorProfileModal';
 import { DoctorBookingWizardModal } from './DoctorBookingWizardModal';
 import { DoctorSearchModal } from './DoctorSearchModal';
 import { MyAppointmentsScreen } from './MyAppointmentsScreen';
+import { notificationService } from '../../services/notificationService';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -56,6 +57,21 @@ export const DoctorsHomeScreen: React.FC<DoctorsHomeScreenProps> = ({
     setAppointments(prev => [newAppointment, ...prev]);
     setBookingDoctor(null);
     setShowMyAppointments(true);
+
+    // Dynamic Authoritative Notification Event
+    notificationService.addNotification({
+      userId: user?.phone || 'usr-default',
+      title: 'Appointment Request Submitted',
+      body: `Your consultation request with ${newAppointment.doctorName} for ${newAppointment.appointmentDate} at ${newAppointment.appointmentTime} is submitted for clinical verification.`,
+      category: 'DOCTOR',
+      eventType: 'APPOINTMENT_REQUESTED',
+      relatedEntityId: newAppointment.id,
+      relatedEntityType: 'doctor_appointment',
+      priority: 'HIGH',
+      actionRoute: 'doctors',
+      actionParams: { appointmentId: newAppointment.id },
+      ctaLabel: 'View Appointment Status →',
+    });
   };
 
   const handleCancelAppointment = (id: string) => {
@@ -66,6 +82,20 @@ export const DoctorsHomeScreen: React.FC<DoctorsHomeScreenProps> = ({
           : apt,
       ),
     );
+
+    notificationService.addNotification({
+      userId: user?.phone || 'usr-default',
+      title: 'Appointment Cancelled',
+      body: `Your appointment request has been cancelled as per your schedule request.`,
+      category: 'DOCTOR',
+      eventType: 'APPOINTMENT_CANCELLED',
+      relatedEntityId: id,
+      relatedEntityType: 'doctor_appointment',
+      priority: 'NORMAL',
+      actionRoute: 'doctors',
+      actionParams: { appointmentId: id },
+      ctaLabel: 'View Appointments →',
+    });
   };
 
   const handleOpenSpeciality = (specId: DoctorSpecialityId) => {

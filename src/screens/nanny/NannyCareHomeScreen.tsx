@@ -21,6 +21,7 @@ import { AppIcon } from '../../components/common/AppIcon';
 import { NannyProfileModal } from './NannyProfileModal';
 import { NannyBookingWizardModal } from './NannyBookingWizardModal';
 import { MyNannyBookingsScreen } from './MyNannyBookingsScreen';
+import { notificationService } from '../../services/notificationService';
 
 interface NannyCareHomeScreenProps {
   user?: { name: string; phone: string } | null;
@@ -69,6 +70,21 @@ export const NannyCareHomeScreen: React.FC<NannyCareHomeScreenProps> = ({
     setBookings(prev => [newBooking, ...prev]);
     setBookingNanny(null);
     setShowMyBookings(true);
+
+    // Dynamic Authoritative Notification Event
+    notificationService.addNotification({
+      userId: user?.phone || 'usr-default',
+      title: 'Nanny Booking Request Received',
+      body: `Your childcare booking request for ${newBooking.nannyName} (${newBooking.childAgeGroup} · ${newBooking.startDateText}) is under Appuge Care review.`,
+      category: 'NANNY',
+      eventType: 'NANNY_REQUEST_RECEIVED',
+      relatedEntityId: newBooking.id,
+      relatedEntityType: 'nanny_booking',
+      priority: 'HIGH',
+      actionRoute: 'nanny',
+      actionParams: { bookingId: newBooking.id },
+      ctaLabel: 'View Booking Details →',
+    });
   };
 
   const handleUpdateBookingStatus = (

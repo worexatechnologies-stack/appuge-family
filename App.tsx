@@ -34,6 +34,9 @@ import { FloatingCartBar } from './src/components/FloatingCartBar';
 import { WishlistScreen } from './src/screens/WishlistScreen';
 import { ProfileScreen } from './src/screens/ProfileScreen';
 import { NannyCareHomeScreen } from './src/screens/nanny/NannyCareHomeScreen';
+import { NotificationCentreModal } from './src/screens/notifications/NotificationCentreModal';
+import { NotificationPreferencesModal } from './src/screens/notifications/NotificationPreferencesModal';
+import { notificationService } from './src/services/notificationService';
 
 interface UserProfile {
   name: string;
@@ -50,6 +53,11 @@ function App() {
     useState<CommitmentDetailId | null>(null);
   const [bookingVisible, setBookingVisible] = useState(false);
   const [profileVisible, setProfileVisible] = useState(false);
+  const [notificationCentreVisible, setNotificationCentreVisible] = useState(false);
+  const [notificationPreferencesVisible, setNotificationPreferencesVisible] = useState(false);
+  const [unreadNotifCount, setUnreadNotifCount] = useState(
+    notificationService.getUnreadCount(),
+  );
   const [prefillService, setPrefillService] = useState(
     'Mother & Baby Dual Sanctuary',
   );
@@ -88,6 +96,15 @@ function App() {
     const item = COMMERCE_ITEMS.find(i => i.id === id);
     return sum + (item ? item.price * qty : 0);
   }, 0);
+
+  // Sync Unread Notifications
+  useEffect(() => {
+    setUnreadNotifCount(notificationService.getUnreadCount(user?.phone));
+    const unsubscribe = notificationService.subscribe(() => {
+      setUnreadNotifCount(notificationService.getUnreadCount(user?.phone));
+    });
+    return () => unsubscribe();
+  }, [user]);
 
   // E-Commerce Handlers
   const handleAddToCart = (item: CommerceItem) => {
@@ -190,6 +207,24 @@ function App() {
 
     setOrders(prev => [newOrder, ...prev]);
     setCart({});
+
+    // Generate real-time authoritative order notification
+    notificationService.addNotification({
+      userId: user?.phone || 'usr-default',
+      title: 'Order Placed & Confirmed',
+      body: `Order ${newOrder.orderNumber} for ₹${summary.total.toLocaleString(
+        'en-IN',
+      )} has been confirmed. Fresh items are being packed in our sanctuary kitchen.`,
+      category: 'ORDER',
+      eventType: 'ORDER_PLACED',
+      relatedEntityId: newOrder.orderNumber,
+      relatedEntityType: 'commerce_order',
+      priority: 'NORMAL',
+      actionRoute: 'orders',
+      actionParams: { orderNumber: newOrder.orderNumber },
+      ctaLabel: 'Track Delivery →',
+    });
+
     Alert.alert(
       '🎉 Order Placed Successfully!',
       `Order ${newOrder.orderNumber} for ₹${summary.total.toLocaleString(
@@ -405,10 +440,12 @@ function App() {
 
             cartCount={cartCount}
             wishlistCount={wishlist.length}
+            notificationCount={unreadNotifCount}
             currentLocality={currentLocality}
             onOpenLocation={() => setLocationVisible(true)}
             onOpenCart={() => handleNavigateTab('cart')}
             onOpenWishlist={() => handleNavigateTab('wishlist')}
+            onOpenNotifications={() => setNotificationCentreVisible(true)}
             onOpenSearch={() => setSearchVisible(true)}
           />
         )}
@@ -618,6 +655,33 @@ function App() {
             setProfileVisible(false);
             handleNavigateTab('cart');
           }}
+          onOpenNotificationPreferences={() => {
+            setProfileVisible(false);
+            setTimeout(() => setNotificationPreferencesVisible(true), 250);
+          }}
+        />
+
+        {/* Global Notification Centre Modal */}
+        <NotificationCentreModal
+          visible={notificationCentreVisible}
+          onClose={() => setNotificationCentreVisible(false)}
+          onOpenSettings={() => {
+            setNotificationCentreVisible(false);
+            setTimeout(() => setNotificationPreferencesVisible(true), 250);
+          }}
+          navigationContext={{
+            navigateTab: handleNavigateTab,
+            onOpenOrder: () => handleNavigateTab('orders'),
+            onOpenDoctorAppointment: () => handleNavigateTab('doctors'),
+            onOpenNannyBooking: () => handleNavigateTab('nanny'),
+            onOpenAnnouncement: () => handleNavigateTab('home'),
+          }}
+        />
+
+        {/* Notification Preferences & Smart Alerts Settings Modal */}
+        <NotificationPreferencesModal
+          visible={notificationPreferencesVisible}
+          onClose={() => setNotificationPreferencesVisible(false)}
         />
       </SafeAreaView>
     </SafeAreaProvider>

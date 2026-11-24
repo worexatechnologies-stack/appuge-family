@@ -20,10 +20,12 @@ interface HeaderProps {
   onGoBack?: () => void;
   cartCount?: number;
   wishlistCount?: number;
+  notificationCount?: number;
   currentLocality?: string;
   onOpenLocation?: () => void;
   onOpenCart?: () => void;
   onOpenWishlist?: () => void;
+  onOpenNotifications?: () => void;
   onOpenSearch?: () => void;
 }
 
@@ -36,10 +38,12 @@ export const Header: React.FC<HeaderProps> = ({
   onGoBack,
   cartCount = 0,
   wishlistCount = 0,
+  notificationCount = 0,
   currentLocality = 'Indiranagar',
   onOpenLocation,
   onOpenCart,
   onOpenWishlist,
+  onOpenNotifications,
 }) => {
   const { left: leftInset, right: rightInset } = useAppInsets();
   const horizPadding = Math.max(leftInset, rightInset, 20);
@@ -65,8 +69,29 @@ export const Header: React.FC<HeaderProps> = ({
           </TouchableOpacity>
         </View>
 
-        {/* Right Action Icons: Wishlist + Cart + Profile */}
+        {/* Right Action Icons: Notifications + Wishlist + Cart + Profile */}
         <View style={styles.rightActions}>
+          {/* Notification Bell with Dynamic Unread Badge */}
+          <TouchableOpacity
+            style={styles.actionBtn}
+            onPress={onOpenNotifications}
+            activeOpacity={0.75}
+            accessibilityLabel={
+              notificationCount > 0
+                ? `Notifications, ${notificationCount} unread`
+                : 'Notifications'
+            }
+            accessibilityRole="button">
+            <AppIcon name="bell" size={15} color={Colors.forestDark} />
+            {notificationCount > 0 && (
+              <View style={styles.notifBadge}>
+                <Text style={styles.notifBadgeText}>
+                  {notificationCount > 99 ? '99+' : notificationCount}
+                </Text>
+              </View>
+            )}
+          </TouchableOpacity>
+
           {/* Wishlist Icon */}
           <TouchableOpacity
             style={styles.actionBtn}
@@ -249,6 +274,25 @@ const styles = StyleSheet.create({
     fontSize: 9,
     fontWeight: '800',
     color: 'white',
+  },
+  notifBadge: {
+    position: 'absolute',
+    top: -3,
+    right: -3,
+    backgroundColor: Colors.terracotta,
+    borderRadius: 8,
+    minWidth: 16,
+    height: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 3,
+    borderWidth: 1.5,
+    borderColor: '#FFFDF9',
+  },
+  notifBadgeText: {
+    fontSize: 8.5,
+    fontWeight: '800',
+    color: '#FFFDF9',
   },
   userAvatarBtn: {
     width: 32,
