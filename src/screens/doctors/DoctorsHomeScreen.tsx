@@ -25,9 +25,7 @@ import { DoctorProfileModal } from './DoctorProfileModal';
 import { DoctorBookingWizardModal } from './DoctorBookingWizardModal';
 import { DoctorSearchModal } from './DoctorSearchModal';
 import { MyAppointmentsScreen } from './MyAppointmentsScreen';
-import { CareQuestionnaireModal } from './questionnaire/CareQuestionnaireModal';
-import { PersonalizedDoctorResultsModal } from './questionnaire/PersonalizedDoctorResultsModal';
-import { CareMatchingOutput } from '../../types/careQuestionnaire.types';
+import { CareConciergeModal } from './concierge/CareConciergeModal';
 import { notificationService } from '../../services/notificationService';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -56,10 +54,8 @@ export const DoctorsHomeScreen: React.FC<DoctorsHomeScreenProps> = ({
     useState<DoctorSpecialityId | null>(null);
   const [showMyAppointments, setShowMyAppointments] = useState(false);
 
-  // Guided Care Questionnaire & Personalized Matching States
-  const [questionnaireVisible, setQuestionnaireVisible] = useState(false);
-  const [matchingResultsVisible, setMatchingResultsVisible] = useState(false);
-  const [matchingOutput, setMatchingOutput] = useState<CareMatchingOutput | null>(null);
+  // Appuge Care Concierge State
+  const [conciergeVisible, setConciergeVisible] = useState(false);
 
   const handleBookingCreated = (newAppointment: DoctorAppointment) => {
     setAppointments(prev => [newAppointment, ...prev]);
@@ -239,7 +235,7 @@ export const DoctorsHomeScreen: React.FC<DoctorsHomeScreenProps> = ({
                   style={styles.heroActionBtn}
                   activeOpacity={0.9}
                   onPress={() => {
-                    setQuestionnaireVisible(true);
+                    setConciergeVisible(true);
                   }}>
                   <Text style={styles.heroActionBtnText}>
                     Find Your Specialist
@@ -915,32 +911,16 @@ export const DoctorsHomeScreen: React.FC<DoctorsHomeScreenProps> = ({
         }}
       />
 
-      {/* Guided Care Questionnaire */}
-      <CareQuestionnaireModal
-        visible={questionnaireVisible}
-        onClose={() => setQuestionnaireVisible(false)}
-        onComplete={(output, _answers) => {
-          setQuestionnaireVisible(false);
-          setMatchingOutput(output);
-          setMatchingResultsVisible(true);
-        }}
-      />
-
-      {/* Personalized Doctor Results */}
-      <PersonalizedDoctorResultsModal
-        visible={matchingResultsVisible}
-        output={matchingOutput}
-        onClose={() => setMatchingResultsVisible(false)}
-        onRetake={() => {
-          setMatchingResultsVisible(false);
-          setQuestionnaireVisible(true);
-        }}
+      {/* Appuge Care Concierge Modal */}
+      <CareConciergeModal
+        visible={conciergeVisible}
+        onClose={() => setConciergeVisible(false)}
         onSelectDoctor={doc => {
-          setMatchingResultsVisible(false);
+          setConciergeVisible(false);
           setSelectedDoctor(doc);
         }}
         onBookDoctor={doc => {
-          setMatchingResultsVisible(false);
+          setConciergeVisible(false);
           setBookingDoctor(doc);
         }}
       />

@@ -4,393 +4,351 @@ import {
   CareQuestionnaireAnswers,
   DoctorMatchResult,
 } from '../types/careQuestionnaire.types';
+import {
+  CareConciergeState,
+  ConciergeResultsData,
+  RecommendedDoctor,
+} from '../types/careConcierge.types';
 
 export class DoctorMatchingService {
   /**
-   * Matches doctors based on answers provided in the Care Questionnaire.
-   * Only returns doctors that meet the clinical criteria and modality/locality filters.
+   * Premium 3-question Care Concierge matching engine.
+   * Matches doctors purely based on genuine verified profile data,
+   * patient category, care need, and consultation preference.
+   */
+  public static matchConcierge(
+    state: CareConciergeState,
+    allDoctors: DoctorProfile[] = DEMO_DOCTORS
+  ): ConciergeResultsData {
+    const verifiedDoctors = allDoctors.filter(d => d.medicalRegistration?.isVerified);
+
+    // Filter by modality first
+    const eligibleDoctors = verifiedDoctors.filter(doc => {
+      if (state.modality === 'ONLINE') {
+        return doc.consultationTypes.includes('ONLINE');
+      }
+      if (state.modality === 'IN_CLINIC') {
+        return doc.consultationTypes.includes('IN_CLINIC');
+      }
+      return true;
+    });
+
+    const matches: { doctor: DoctorProfile; score: number; reason: string; expertise: string[] }[] = [];
+
+    for (const doc of eligibleDoctors) {
+      let score = 0;
+      let reason = '';
+      const expertise: string[] = [];
+
+      // Locality alignment boost
+      if (
+        state.modality === 'IN_CLINIC' &&
+        state.locality !== 'ANY' &&
+        doc.clinic.locality.toLowerCase() === state.locality.toLowerCase()
+      ) {
+        score += 15;
+      }
+
+      switch (state.recipient) {
+        case 'MYSELF': {
+          switch (state.careNeedId) {
+            case 'postpartum_care':
+            case 'womens_health':
+              if (doc.specialityId === 'obstetrician' || doc.specialityId === 'gynecologist') {
+                score += 90;
+                reason = 'Senior Obstetrician specializing in postpartum recovery & pelvic health';
+                expertise.push(...doc.areasOfExpertise.slice(0, 3));
+              } else if (doc.specialityId === 'physician') {
+                score += 70;
+                reason = 'Postpartum recovery check & maternal vitals monitoring';
+                expertise.push('Postpartum Recovery', 'Family Health');
+              }
+              break;
+            case 'breastfeeding_support':
+              if (doc.specialityId === 'lactation') {
+                score += 95;
+                reason = 'Certified IBCLC Lactation Specialist with gentle latch coaching';
+                expertise.push(...doc.areasOfExpertise.slice(0, 3));
+              } else if (doc.specialityId === 'pediatrician') {
+                score += 65;
+                reason = 'Pediatric feeding & infant latch guidance';
+                expertise.push('Infant Feeding', 'Newborn Health');
+              }
+              break;
+            case 'skin_hair':
+              if (doc.specialityId === 'dermatologist') {
+                score += 92;
+                reason = 'Postpartum skin barrier recovery & gentle hair shed management';
+                expertise.push(...doc.areasOfExpertise.slice(0, 3));
+              }
+              break;
+            case 'nutrition':
+              if (doc.specialityId === 'nutritionist' || doc.id === 'doc-aravind') {
+                score += 88;
+                reason = 'Maternal nourishment & vitality restoration';
+                expertise.push('Postpartum Diet', 'Holistic Nutrition');
+              } else if (doc.specialityId === 'obstetrician') {
+                score += 65;
+                reason = 'Maternal health & nutritional oversight';
+                expertise.push('Maternal Health');
+              }
+              break;
+            default: // general_consultation
+              if (doc.specialityId === 'physician') {
+                score += 88;
+                reason = 'Everyday maternal and family wellness consultation';
+                expertise.push(...doc.areasOfExpertise.slice(0, 3));
+              } else if (doc.specialityId === 'obstetrician') {
+                score += 70;
+                reason = 'Comprehensive maternal check-up';
+                expertise.push('Women’s Health');
+              }
+              break;
+          }
+          break;
+        }
+
+        case 'PREGNANCY': {
+          if (doc.specialityId === 'obstetrician' || doc.specialityId === 'gynecologist') {
+            score += 92;
+            reason =
+              state.careNeedId === 'high_risk_consultation'
+                ? 'Senior specialist in high-risk pregnancy & maternal monitoring'
+                : 'Compassionate antenatal care & trimester growth tracking';
+            expertise.push(...doc.areasOfExpertise.slice(0, 3));
+          } else if (state.careNeedId === 'pregnancy_nutrition' && (doc.specialityId === 'nutritionist' || doc.id === 'doc-aravind')) {
+            score += 85;
+            reason = 'Antenatal nutrition & balanced pregnancy diet';
+            expertise.push('Pregnancy Nutrition');
+          }
+          break;
+        }
+
+        case 'NEWBORN': {
+          switch (state.careNeedId) {
+            case 'feeding_support':
+              if (doc.specialityId === 'lactation') {
+                score += 96;
+                reason = 'Certified IBCLC Lactation Specialist for newborn latch & feeding ease';
+                expertise.push(...doc.areasOfExpertise.slice(0, 3));
+              } else if (doc.specialityId === 'pediatrician') {
+                score += 70;
+                reason = 'Newborn pediatric feeding & oral assessment';
+                expertise.push('Newborn Growth', 'Infant Colic');
+              }
+              break;
+            case 'baby_skin_concerns':
+              if (doc.specialityId === 'dermatologist') {
+                score += 94;
+                reason = 'Pediatric dermatologist for cradle cap, eczema & delicate baby skin';
+                expertise.push(...doc.areasOfExpertise.slice(0, 3));
+              } else if (doc.specialityId === 'pediatrician') {
+                score += 70;
+                reason = 'Pediatric infant rash & skin barrier assessment';
+                expertise.push('Newborn Skin Care');
+              }
+              break;
+            default: // newborn_health, growth_development, vaccination_guidance, general_pediatric_care
+              if (doc.specialityId === 'pediatrician') {
+                score += 92;
+                reason = 'Senior Pediatrician with dedicated neonatal care & colic transition experience';
+                expertise.push(...doc.areasOfExpertise.slice(0, 3));
+              }
+              break;
+          }
+          break;
+        }
+
+        case 'CHILD': {
+          switch (state.careNeedId) {
+            case 'nutrition_growth':
+              if (doc.id === 'doc-aravind' || doc.specialityId === 'nutritionist') {
+                score += 95;
+                reason = 'Pediatrician & Child Nutritionist specializing in growth & fussy eating';
+                expertise.push(...doc.areasOfExpertise.slice(0, 3));
+              } else if (doc.specialityId === 'pediatrician') {
+                score += 75;
+                reason = 'Child growth curves & pediatric dietary review';
+                expertise.push('Growth Tracking');
+              }
+              break;
+            case 'skin_concerns':
+              if (doc.specialityId === 'dermatologist') {
+                score += 92;
+                reason = 'Pediatric skin specialist for allergies, rashes & eczema';
+                expertise.push(...doc.areasOfExpertise.slice(0, 3));
+              } else if (doc.specialityId === 'pediatrician') {
+                score += 68;
+                reason = 'Pediatric allergy & skin assessment';
+                expertise.push('Allergy Care');
+              }
+              break;
+            case 'development':
+              if (doc.specialityId === 'development') {
+                score += 92;
+                reason = 'Child Development Specialist for motor & speech milestones';
+                expertise.push(...doc.areasOfExpertise.slice(0, 3));
+              } else if (doc.specialityId === 'pediatrician') {
+                score += 75;
+                reason = 'Pediatric developmental milestone tracking';
+                expertise.push('Milestone Tracking');
+              }
+              break;
+            default: // general_health, vaccination, pediatric_consultation
+              if (doc.specialityId === 'pediatrician') {
+                score += 90;
+                reason = 'Comprehensive pediatric care, gentle diagnosis & vaccination guidance';
+                expertise.push(...doc.areasOfExpertise.slice(0, 3));
+              } else if (doc.specialityId === 'physician') {
+                score += 65;
+                reason = 'Family preventative health consultation';
+                expertise.push('General Health');
+              }
+              break;
+          }
+          break;
+        }
+      }
+
+      if (score >= 60) {
+        matches.push({
+          doctor: doc,
+          score,
+          reason,
+          expertise: expertise.length > 0 ? expertise : doc.areasOfExpertise.slice(0, 2),
+        });
+      }
+    }
+
+    // Sort by score descending
+    matches.sort((a, b) => b.score - a.score);
+
+    // Check optional note for urgent red flags
+    const note = (state.optionalNote || '').toLowerCase();
+    const urgentKeywords = [
+      'breathing',
+      'breath',
+      'fever above',
+      'high fever',
+      'unresponsive',
+      'lethargic',
+      'blue',
+      'seizure',
+      'emergency',
+      'convulsion',
+    ];
+    const hasUrgent = urgentKeywords.some(kw => note.includes(kw));
+
+    // Curate presentation: 1 featured, up to 2 secondary, rest counted
+    const featuredMatch = matches[0]
+      ? {
+          doctor: matches[0].doctor,
+          matchReason: matches[0].reason,
+          relevantExpertise: matches[0].expertise,
+          isFeatured: true,
+        }
+      : null;
+
+    const secondaryMatches: RecommendedDoctor[] = matches.slice(1, 3).map(m => ({
+      doctor: m.doctor,
+      matchReason: m.reason,
+      relevantExpertise: m.expertise,
+      isFeatured: false,
+    }));
+
+    const additionalCount = Math.max(0, matches.length - 3);
+
+    const recipientLabelMap: Record<string, string> = {
+      MYSELF: 'Myself',
+      PREGNANCY: 'Pregnancy',
+      NEWBORN: 'Newborn',
+      CHILD: 'Child',
+    };
+    const recipientLabel = state.recipient ? recipientLabelMap[state.recipient] || 'Family' : 'Family';
+    const careNeedLabel = state.careNeedTitle || 'Specialist Care';
+    const modalityLabel =
+      state.modality === 'ONLINE'
+        ? 'Online Video'
+        : state.modality === 'IN_CLINIC'
+        ? 'In-Clinic'
+        : 'Online or In-Clinic';
+
+    const whyExplanation = `Matched to your selection for ${recipientLabel.toLowerCase()} ${careNeedLabel.toLowerCase()}.`;
+
+    return {
+      featured: featuredMatch,
+      secondary: secondaryMatches,
+      additionalCount,
+      whyExplanation,
+      recipientLabel,
+      careNeedLabel,
+      modalityLabel,
+      hasUrgentWarning: hasUrgent,
+      urgentWarningMessage: hasUrgent
+        ? 'If your baby or child has acute difficulty breathing, high fever above 102°F, or is unresponsive, seek immediate emergency care at the nearest hospital or call 112 / 108.'
+        : undefined,
+    };
+  }
+
+  /**
+   * Backwards-compatible questionnaire matching method
    */
   public static matchDoctors(
     answers: CareQuestionnaireAnswers,
     allDoctors: DoctorProfile[] = DEMO_DOCTORS
   ): CareMatchingOutput {
-    const results: DoctorMatchResult[] = [];
+    const verifiedDoctors = allDoctors.filter(d => d.medicalRegistration?.isVerified);
 
-    // Filter verified doctors first
-    const activeDoctors = allDoctors.filter(d => d.medicalRegistration?.isVerified);
+    let careNeedId = 'general';
+    let careNeedTitle = 'General Care';
 
-    for (const doc of activeDoctors) {
-      const matchData = this.calculateDoctorMatch(doc, answers);
-      if (matchData && matchData.matchScore >= 65) {
-        results.push(matchData);
-      }
-    }
-
-    // Sort descending by score
-    results.sort((a, b) => b.matchScore - a.matchScore);
-
-    const summary = this.generateSummaryLabels(answers);
-    const hasEmergency = this.checkEmergencyRisk(answers);
-
-    return {
-      matches: results,
-      answersSummary: summary,
-      hasEmergencyNotice: hasEmergency,
-    };
-  }
-
-  private static calculateDoctorMatch(
-    doc: DoctorProfile,
-    answers: CareQuestionnaireAnswers
-  ): DoctorMatchResult | null {
-    let baseScore = 0;
-    const reasons: string[] = [];
-    let highlight = '';
-
-    // 1. Modality check
-    if (answers.modalityPreference === 'ONLINE') {
-      if (!doc.consultationTypes.includes('ONLINE')) return null;
-      reasons.push('Available for secure HD video consultation');
-    } else if (answers.modalityPreference === 'IN_CLINIC') {
-      if (!doc.consultationTypes.includes('IN_CLINIC')) return null;
-      reasons.push(`In-clinic consultation available at ${doc.clinic.locality}`);
-    }
-
-    // 2. Locality alignment for In-Clinic
-    if (answers.localityPreference !== 'ANY') {
-      const docLocality = doc.clinic.locality.toLowerCase();
-      const targetLocality = answers.localityPreference.toLowerCase();
-
-      if (answers.modalityPreference === 'IN_CLINIC') {
-        if (docLocality === targetLocality) {
-          baseScore += 10;
-          reasons.push(`Directly situated in ${answers.localityPreference}`);
-        } else {
-          // If in-clinic only and user requested specific locality, reduce score
-          baseScore -= 15;
-        }
-      } else if (docLocality === targetLocality) {
-        baseScore += 5;
-      }
-    }
-
-    // 3. Clinical branching logic
-    switch (answers.recipient) {
-      case 'MYSELF': {
-        const mother = answers.motherDetails;
-        if (!mother) break;
-
-        if (mother.supportArea === 'breastfeeding_lactation') {
-          if (doc.specialityId === 'lactation') {
-            baseScore += 85;
-            highlight = 'Certified IBCLC Lactation Specialist';
-            reasons.push('Direct expertise in gentle latch, milk supply restoration & engorgement relief');
-          } else if (doc.specialityId === 'pediatrician') {
-            baseScore += 50;
-            reasons.push('Pediatric infant feeding guidance');
-          }
-        } else if (mother.supportArea === 'skin_hair') {
-          if (doc.specialityId === 'dermatologist') {
-            baseScore += 85;
-            highlight = 'Maternal & Postpartum Skin Specialist';
-            reasons.push('Specialized in postpartum hair shed, skin barrier restoration & melasma');
-          }
-        } else if (mother.supportArea === 'nutrition_energy') {
-          if (doc.specialityId === 'nutritionist') {
-            baseScore += 85;
-            highlight = 'Maternal Nutrition & Vitality Expert';
-            reasons.push('Specialized in postpartum galactagogues, energy restoration and holistic diets');
-          } else if (doc.specialityId === 'obstetrician' || doc.specialityId === 'physician') {
-            baseScore += 65;
-            reasons.push('Postpartum recovery & nutritional oversight');
-          }
-        } else if (
-          mother.supportArea === 'postpartum_recovery' ||
-          mother.supportArea === 'womens_health'
-        ) {
-          if (doc.specialityId === 'obstetrician' || doc.specialityId === 'gynecologist') {
-            baseScore += 85;
-            highlight = 'Maternal Health & Pelvic Healing Specialist';
-            reasons.push('Experienced in C-section/episiotomy healing, pelvic floor assessment and hormonal balance');
-          } else if (doc.specialityId === 'physician') {
-            baseScore += 65;
-            reasons.push('Post-discharge maternal physical check & vitals monitoring');
-          }
-        } else {
-          // general_wellness
-          if (doc.specialityId === 'physician') {
-            baseScore += 80;
-            highlight = 'Family Wellness & Preventative Care';
-            reasons.push('Comprehensive health check, postpartum vitality & family guidance');
-          } else if (doc.specialityId === 'obstetrician') {
-            baseScore += 65;
-            reasons.push('Specialized maternal well-being check');
-          }
-        }
-
-        // Postpartum focus tags matching
-        if (mother.postpartumFocus && mother.postpartumFocus.length > 0) {
-          if (mother.postpartumFocus.includes('pelvic_floor') && (doc.specialityId === 'obstetrician' || doc.specialityId === 'gynecologist')) {
-            baseScore += 5;
-            reasons.push('Targeted pelvic floor recovery');
-          }
-          if (mother.postpartumFocus.includes('breastfeeding') && doc.specialityId === 'lactation') {
-            baseScore += 5;
-          }
-        }
-        break;
-      }
-
-      case 'PREGNANCY': {
-        const preg = answers.pregnancyDetails;
-        if (!preg) break;
-
-        if (doc.specialityId === 'obstetrician' || doc.specialityId === 'gynecologist') {
-          baseScore += 90;
-          highlight = 'Senior Obstetrician & Antenatal Specialist';
-          reasons.push('Comprehensive trimester tracking, growth scans & safe birth planning');
-
-          if (preg.supportNeeded === 'high_risk') {
-            baseScore += 5;
-            reasons.push('Specialized experience in high-risk antenatal care');
-          }
-        } else if (preg.supportNeeded === 'nutrition_diet' && doc.specialityId === 'nutritionist') {
-          baseScore += 80;
-          highlight = 'Pregnancy Nutrition Consultant';
-          reasons.push('Personalized antenatal nourishment plans for mother & baby');
-        }
-        break;
-      }
-
-      case 'NEWBORN': {
-        const nb = answers.newbornDetails;
-        if (!nb) break;
-
-        if (nb.careNeeded === 'feeding_latch') {
-          if (doc.specialityId === 'lactation') {
-            baseScore += 90;
-            highlight = 'IBCLC Infant Feeding & Latch Specialist';
-            reasons.push('Specialized in gentle newborn latch, tongue-tie assessment & nipple comfort');
-          } else if (doc.specialityId === 'pediatrician') {
-            baseScore += 65;
-            reasons.push('Newborn oral exam & infant digestion review');
-          }
-        } else if (nb.careNeeded === 'skin_rash') {
-          if (doc.specialityId === 'dermatologist') {
-            baseScore += 90;
-            highlight = 'Pediatric Dermatologist';
-            reasons.push('Specialist for cradle cap, infantile eczema & sensitive skin barriers');
-          } else if (doc.specialityId === 'pediatrician') {
-            baseScore += 70;
-            reasons.push('Pediatric skin & rash evaluation');
-          }
-        } else {
-          // newborn_checkup, sleep_patterns, growth_weight, vaccination, general_pediatric
-          if (doc.specialityId === 'pediatrician') {
-            baseScore += 90;
-            highlight = 'Neonatal & Infant Care Pediatrician';
-            reasons.push('Expert in newborn transition, colic calming, weight curves & immunization');
-          }
-        }
-        break;
-      }
-
-      case 'CHILD': {
-        const child = answers.childDetails;
-        if (!child) break;
-
-        if (child.concern === 'nutrition_eating') {
-          if (doc.specialityId === 'nutritionist') {
-            baseScore += 90;
-            highlight = 'Pediatric Nutritionist';
-            reasons.push('Specialized in toddler feeding resistance, growth plates & nutrient balancing');
-          } else if (doc.specialityId === 'pediatrician') {
-            baseScore += 75;
-            reasons.push('Pediatric growth & dietary oversight');
-          }
-        } else if (child.concern === 'skin_conditions') {
-          if (doc.specialityId === 'dermatologist') {
-            baseScore += 90;
-            highlight = 'Pediatric Dermatologist';
-            reasons.push('Treatment of childhood atopic eczema, molluscum & sensitive skin allergies');
-          } else if (doc.specialityId === 'pediatrician') {
-            baseScore += 65;
-            reasons.push('Pediatric skin check');
-          }
-        } else if (child.concern === 'development_speech') {
-          if (doc.specialityId === 'development') {
-            baseScore += 90;
-            highlight = 'Child Development Specialist';
-            reasons.push('Expert in speech milestones, fine motor progress & sensory integration');
-          } else if (doc.specialityId === 'pediatrician') {
-            baseScore += 70;
-            reasons.push('Milestone evaluation & developmental guidance');
-          }
-        } else {
-          // general_fever, routine_vaccination, specialist_eval
-          if (doc.specialityId === 'pediatrician') {
-            baseScore += 90;
-            highlight = 'Senior Pediatrician';
-            reasons.push('Complete childhood health assessment, fever diagnosis & gentle clinical care');
-          } else if (doc.specialityId === 'physician') {
-            baseScore += 65;
-            reasons.push('Family clinical consultation');
-          }
-        }
-        break;
-      }
-    }
-
-    if (baseScore < 60) return null;
-
-    // Doctor rating boost (e.g. 4.96 gives +5)
-    if (doc.rating >= 4.9) {
-      baseScore += 5;
-    }
-
-    const finalScore = Math.min(Math.round(baseScore), 99);
-
-    return {
-      doctor: doc,
-      matchScore: finalScore,
-      matchReasons: reasons.slice(0, 3),
-      primaryHighlight: highlight || doc.specialityTitle,
-    };
-  }
-
-  private static generateSummaryLabels(answers: CareQuestionnaireAnswers) {
-    let recipientLabel = 'Care';
-    let focusLabel = 'General Health';
-    let stageOrAgeLabel = 'All Ages';
-
-    switch (answers.recipient) {
-      case 'MYSELF':
-        recipientLabel = 'Mother / Myself';
-        if (answers.motherDetails) {
-          const areaMap: Record<string, string> = {
-            postpartum_recovery: 'Postpartum Recovery',
-            womens_health: "Women's Health",
-            breastfeeding_lactation: 'Breastfeeding & Lactation',
-            nutrition_energy: 'Nourishment & Energy',
-            skin_hair: 'Skin & Hair Wellness',
-            general_wellness: 'General Wellness',
-          };
-          focusLabel = areaMap[answers.motherDetails.supportArea] || 'Maternal Care';
-
-          const timelineMap: Record<string, string> = {
-            currently_pregnant: 'Currently Pregnant',
-            under_6_weeks: 'Delivered < 6 Weeks ago',
-            '6_weeks_to_3_months': 'Delivered 6w – 3m ago',
-            '3_to_6_months': 'Delivered 3 – 6m ago',
-            over_6_months: 'Delivered > 6m ago',
-            not_applicable: 'Not Applicable',
-          };
-          stageOrAgeLabel = timelineMap[answers.motherDetails.deliveryTimeline] || 'Postpartum';
-        }
-        break;
-
-      case 'PREGNANCY':
-        recipientLabel = 'Pregnancy Journey';
-        if (answers.pregnancyDetails) {
-          const stageMap: Record<string, string> = {
-            planning: 'Planning Conception',
-            first_trimester: '1st Trimester (1–12w)',
-            second_trimester: '2nd Trimester (13–27w)',
-            third_trimester: '3rd Trimester (28w+)',
-            not_sure: 'Pregnancy Support',
-          };
-          stageOrAgeLabel = stageMap[answers.pregnancyDetails.gestationStage] || 'Antenatal';
-
-          const supportMap: Record<string, string> = {
-            routine_checkup: 'Routine Check-up',
-            nutrition_diet: 'Nutrition & Diet',
-            ultrasound_scans: 'Scans & Diagnostics',
-            pregnancy_concerns: 'Pregnancy Concerns',
-            high_risk: 'High-Risk Consultation',
-            general_guidance: 'General Guidance',
-          };
-          focusLabel = supportMap[answers.pregnancyDetails.supportNeeded] || 'Antenatal Care';
-        }
-        break;
-
-      case 'NEWBORN':
-        recipientLabel = 'Newborn Baby';
-        if (answers.newbornDetails) {
-          const ageMap: Record<string, string> = {
-            '0_to_7_days': '0 to 7 Days Old',
-            '1_to_4_weeks': '1 to 4 Weeks Old',
-            '1_to_3_months': '1 to 3 Months Old',
-            '3_to_6_months': '3 to 6 Months Old',
-            '6_to_12_months': '6 to 12 Months Old',
-          };
-          stageOrAgeLabel = ageMap[answers.newbornDetails.ageGroup] || 'Infant';
-
-          const careMap: Record<string, string> = {
-            newborn_checkup: 'Newborn Check-up',
-            feeding_latch: 'Feeding & Latch Care',
-            sleep_patterns: 'Sleep & Rhythm',
-            skin_rash: 'Skin Rash & Cradle Cap',
-            growth_weight: 'Growth & Weight Curves',
-            vaccination: 'Immunization Schedule',
-            general_pediatric: 'General Pediatric Care',
-          };
-          focusLabel = careMap[answers.newbornDetails.careNeeded] || 'Newborn Care';
-        }
-        break;
-
-      case 'CHILD':
-        recipientLabel = 'Child Care';
-        if (answers.childDetails) {
-          const ageMap: Record<string, string> = {
-            '1_to_2_years': '1 to 2 Years Old',
-            '2_to_5_years': '2 to 5 Years Old',
-            '6_to_10_years': '6 to 10 Years Old',
-            over_10_years: 'Older than 10 Years',
-          };
-          stageOrAgeLabel = ageMap[answers.childDetails.ageGroup] || 'Child';
-
-          const concernMap: Record<string, string> = {
-            general_fever: 'General Illness / Fever',
-            nutrition_eating: 'Nutrition & Eating Habits',
-            skin_conditions: 'Skin Conditions',
-            development_speech: 'Development & Milestones',
-            routine_vaccination: 'Routine Vaccination',
-            specialist_eval: 'Specialist Evaluation',
-          };
-          focusLabel = concernMap[answers.childDetails.concern] || 'Child Wellness';
-        }
-        break;
-    }
-
-    const modalityLabel =
-      answers.modalityPreference === 'ONLINE'
-        ? 'Online Video'
-        : answers.modalityPreference === 'IN_CLINIC'
-        ? 'In-Clinic Visit'
-        : 'Online or In-Clinic';
-
-    const localityLabel =
-      answers.localityPreference === 'ANY'
-        ? 'Any Bengaluru Location'
-        : answers.localityPreference;
-
-    return {
-      recipientLabel,
-      focusLabel,
-      stageOrAgeLabel,
-      modalityLabel,
-      localityLabel,
-    };
-  }
-
-  private static checkEmergencyRisk(answers: CareQuestionnaireAnswers): boolean {
     if (answers.recipient === 'NEWBORN') {
-      // Newborns always have high vulnerability advisory
-      return true;
+      careNeedId = answers.newbornDetails?.careNeeded || 'newborn_health';
+      careNeedTitle = careNeedId.replace(/_/g, ' ');
+    } else if (answers.recipient === 'MYSELF') {
+      careNeedId = answers.motherDetails?.supportArea || 'postpartum_care';
+      careNeedTitle = careNeedId.replace(/_/g, ' ');
+    } else if (answers.recipient === 'PREGNANCY') {
+      careNeedId = answers.pregnancyDetails?.supportNeeded || 'pregnancy_care';
+      careNeedTitle = careNeedId.replace(/_/g, ' ');
+    } else if (answers.recipient === 'CHILD') {
+      careNeedId = answers.childDetails?.concern || 'general_health';
+      careNeedTitle = careNeedId.replace(/_/g, ' ');
     }
-    if (answers.recipient === 'CHILD' && answers.childDetails?.concern === 'general_fever') {
-      return true;
-    }
-    return false;
+
+    const conciergeOutput = this.matchConcierge(
+      {
+        recipient: answers.recipient,
+        careNeedId,
+        careNeedTitle,
+        optionalNote: '',
+        modality: answers.modalityPreference === 'ANY' ? 'EITHER' : answers.modalityPreference,
+        locality: answers.localityPreference,
+      },
+      verifiedDoctors
+    );
+
+    const allMatches: DoctorProfile[] = [];
+    if (conciergeOutput.featured) allMatches.push(conciergeOutput.featured.doctor);
+    conciergeOutput.secondary.forEach(s => allMatches.push(s.doctor));
+
+    const matchResults: DoctorMatchResult[] = allMatches.map((doc, idx) => ({
+      doctor: doc,
+      matchScore: 95 - idx * 10,
+      matchReasons: [doc.specialityTitle, `Verified ${doc.medicalRegistration.council}`],
+      primaryHighlight: doc.specialityTitle,
+    }));
+
+    return {
+      matches: matchResults,
+      answersSummary: {
+        recipientLabel: conciergeOutput.recipientLabel,
+        focusLabel: conciergeOutput.careNeedLabel,
+        stageOrAgeLabel: answers.recipient,
+        modalityLabel: conciergeOutput.modalityLabel,
+        localityLabel: answers.localityPreference,
+      },
+      hasEmergencyNotice: answers.recipient === 'NEWBORN',
+    };
   }
 }

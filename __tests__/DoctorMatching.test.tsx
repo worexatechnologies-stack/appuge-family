@@ -1,120 +1,109 @@
 import { DoctorMatchingService } from '../src/services/doctorMatching.service';
 import { DEMO_DOCTORS } from '../src/data/doctorsData';
-import { CareQuestionnaireAnswers } from '../src/types/careQuestionnaire.types';
+import { CareConciergeState } from '../src/types/careConcierge.types';
 
-describe('Doctor Matching Engine & Care Questionnaire Flow', () => {
-  it('correctly matches lactation specialist for newborn feeding/latch issues', () => {
-    const answers: CareQuestionnaireAnswers = {
+describe('Appuge Care Concierge - Smart Matching Engine', () => {
+  it('recommends IBCLC Lactation Specialist as featured for Newborn + Feeding support', () => {
+    const state: CareConciergeState = {
       recipient: 'NEWBORN',
-      newbornDetails: {
-        ageGroup: '1_to_4_weeks',
-        careNeeded: 'feeding_latch',
-      },
-      modalityPreference: 'ONLINE',
-      localityPreference: 'ANY',
+      careNeedId: 'feeding_support',
+      careNeedTitle: 'Feeding support',
+      optionalNote: '',
+      modality: 'ONLINE',
+      locality: 'ANY',
     };
 
-    const output = DoctorMatchingService.matchDoctors(answers, DEMO_DOCTORS);
+    const results = DoctorMatchingService.matchConcierge(state, DEMO_DOCTORS);
 
-    expect(output.matches.length).toBeGreaterThan(0);
-    // Top doctor should be Dr. Sneha (lactation)
-    const topMatch = output.matches[0];
-    expect(topMatch.doctor.id).toBe('doc-sneha');
-    expect(topMatch.doctor.specialityId).toBe('lactation');
-    expect(topMatch.matchScore).toBeGreaterThanOrEqual(90);
-    expect(topMatch.primaryHighlight).toContain('Latch');
-    expect(output.hasEmergencyNotice).toBe(true); // Newborn advisory
+    expect(results.featured).not.toBeNull();
+    expect(results.featured?.doctor.id).toBe('doc-sneha');
+    expect(results.featured?.doctor.specialityId).toBe('lactation');
+    expect(results.featured?.matchReason).toContain('Lactation Specialist');
+    expect(results.whyExplanation).toContain('newborn feeding support');
+    expect(results.hasUrgentWarning).toBe(false);
   });
 
-  it('matches obstetrician for maternal postpartum recovery with pelvic floor focus', () => {
-    const answers: CareQuestionnaireAnswers = {
+  it('recommends Senior Obstetrician as featured for Myself + Postpartum care', () => {
+    const state: CareConciergeState = {
       recipient: 'MYSELF',
-      motherDetails: {
-        supportArea: 'postpartum_recovery',
-        deliveryTimeline: 'under_6_weeks',
-        postpartumFocus: ['pelvic_floor', 'physical_recovery'],
-      },
-      modalityPreference: 'IN_CLINIC',
-      localityPreference: 'Koramangala',
+      careNeedId: 'postpartum_care',
+      careNeedTitle: 'Postpartum care',
+      optionalNote: '',
+      modality: 'IN_CLINIC',
+      locality: 'Koramangala',
     };
 
-    const output = DoctorMatchingService.matchDoctors(answers, DEMO_DOCTORS);
+    const results = DoctorMatchingService.matchConcierge(state, DEMO_DOCTORS);
 
-    expect(output.matches.length).toBeGreaterThan(0);
-    const topMatch = output.matches[0];
-    // Dr. Meera is Obstetrician in Koramangala
-    expect(topMatch.doctor.id).toBe('doc-meera');
-    expect(topMatch.matchScore).toBeGreaterThanOrEqual(90);
-    expect(topMatch.matchReasons.some(r => r.includes('Koramangala'))).toBe(true);
+    expect(results.featured).not.toBeNull();
+    expect(results.featured?.doctor.id).toBe('doc-meera');
+    expect(results.featured?.doctor.specialityId).toBe('obstetrician');
+    expect(results.featured?.matchReason).toContain('postpartum');
   });
 
-  it('matches pediatrician for newborn general checkup & colic', () => {
-    const answers: CareQuestionnaireAnswers = {
+  it('recommends Pediatric Dermatologist for Newborn + Baby skin concerns', () => {
+    const state: CareConciergeState = {
       recipient: 'NEWBORN',
-      newbornDetails: {
-        ageGroup: '1_to_3_months',
-        careNeeded: 'newborn_checkup',
-      },
-      modalityPreference: 'ANY',
-      localityPreference: 'Indiranagar',
+      careNeedId: 'baby_skin_concerns',
+      careNeedTitle: 'Baby skin concerns',
+      optionalNote: '',
+      modality: 'EITHER',
+      locality: 'ANY',
     };
 
-    const output = DoctorMatchingService.matchDoctors(answers, DEMO_DOCTORS);
+    const results = DoctorMatchingService.matchConcierge(state, DEMO_DOCTORS);
 
-    expect(output.matches.length).toBeGreaterThan(0);
-    const topMatch = output.matches[0];
-    expect(topMatch.doctor.id).toBe('doc-radhika');
-    expect(topMatch.matchScore).toBeGreaterThanOrEqual(90);
-    expect(topMatch.primaryHighlight).toContain('Pediatrician');
+    expect(results.featured).not.toBeNull();
+    expect(results.featured?.doctor.id).toBe('doc-kavita');
+    expect(results.featured?.doctor.specialityId).toBe('dermatologist');
   });
 
-  it('matches child nutritionist or pediatrician for child nutrition concerns', () => {
-    const answers: CareQuestionnaireAnswers = {
+  it('recommends Child Nutritionist for Child + Nutrition and growth', () => {
+    const state: CareConciergeState = {
       recipient: 'CHILD',
-      childDetails: {
-        ageGroup: '2_to_5_years',
-        concern: 'nutrition_eating',
-      },
-      modalityPreference: 'ANY',
-      localityPreference: 'ANY',
+      careNeedId: 'nutrition_growth',
+      careNeedTitle: 'Nutrition and growth',
+      optionalNote: '',
+      modality: 'EITHER',
+      locality: 'ANY',
     };
 
-    const output = DoctorMatchingService.matchDoctors(answers, DEMO_DOCTORS);
+    const results = DoctorMatchingService.matchConcierge(state, DEMO_DOCTORS);
 
-    expect(output.matches.length).toBeGreaterThan(0);
-    const doctorSpecialities = output.matches.map(m => m.doctor.specialityId);
-    expect(doctorSpecialities).toContain('pediatrician');
+    expect(results.featured).not.toBeNull();
+    expect(results.featured?.doctor.id).toBe('doc-aravind');
   });
 
-  it('triggers emergency risk notice for child high fever', () => {
-    const answers: CareQuestionnaireAnswers = {
-      recipient: 'CHILD',
-      childDetails: {
-        ageGroup: '1_to_2_years',
-        concern: 'general_fever',
-      },
-      modalityPreference: 'ANY',
-      localityPreference: 'ANY',
+  it('detects urgent symptom keywords in optional note and triggers safety alert', () => {
+    const state: CareConciergeState = {
+      recipient: 'NEWBORN',
+      careNeedId: 'newborn_health',
+      careNeedTitle: 'Newborn health',
+      optionalNote: 'Baby has fast breathing and seems lethargic',
+      modality: 'ONLINE',
+      locality: 'ANY',
     };
 
-    const output = DoctorMatchingService.matchDoctors(answers, DEMO_DOCTORS);
-    expect(output.hasEmergencyNotice).toBe(true);
+    const results = DoctorMatchingService.matchConcierge(state, DEMO_DOCTORS);
+
+    expect(results.hasUrgentWarning).toBe(true);
+    expect(results.urgentWarningMessage).toContain('112 / 108');
   });
 
-  it('handles zero matches gracefully when no doctor fits ultra-restrictive criteria', () => {
-    // Artificial test with empty doctors list
-    const answers: CareQuestionnaireAnswers = {
+  it('filters by in-clinic modality and handles empty doctors list gracefully', () => {
+    const state: CareConciergeState = {
       recipient: 'PREGNANCY',
-      pregnancyDetails: {
-        gestationStage: 'second_trimester',
-        supportNeeded: 'routine_checkup',
-      },
-      modalityPreference: 'IN_CLINIC',
-      localityPreference: 'Whitefield',
+      careNeedId: 'pregnancy_care',
+      careNeedTitle: 'Pregnancy care',
+      optionalNote: '',
+      modality: 'IN_CLINIC',
+      locality: 'ANY',
     };
 
-    const output = DoctorMatchingService.matchDoctors(answers, []);
-    expect(output.matches.length).toBe(0);
-    expect(output.answersSummary.recipientLabel).toBe('Pregnancy Journey');
+    const results = DoctorMatchingService.matchConcierge(state, []);
+
+    expect(results.featured).toBeNull();
+    expect(results.secondary.length).toBe(0);
+    expect(results.recipientLabel).toBe('Pregnancy');
   });
 });
