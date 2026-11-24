@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { useAppInsets } from '../../../theme/responsive';
 import { ConciergeLocality, ConciergeModality } from '../../../types/careConcierge.types';
 
 const LOCALITY_OPTIONS: ConciergeLocality[] = [
@@ -33,6 +34,8 @@ export const ConsultationPreference: React.FC<Props> = ({
   onSelectLocality,
   onSubmit,
 }) => {
+  const { bottom: bottomInset } = useAppInsets();
+  const safeBottomPadding = Math.max(bottomInset, Platform.OS === 'android' ? 44 : 16);
   return (
     <View style={styles.container}>
       <ScrollView
@@ -146,7 +149,7 @@ export const ConsultationPreference: React.FC<Props> = ({
       </ScrollView>
 
       {/* Bottom CTA Action Bar */}
-      <View style={styles.bottomBar}>
+      <View style={[styles.bottomBar, { paddingBottom: safeBottomPadding }]}>
         <TouchableOpacity
           style={[styles.primaryBtn, !modality && styles.primaryBtnDisabled]}
           activeOpacity={0.88}
@@ -334,7 +337,6 @@ const styles = StyleSheet.create({
   bottomBar: {
     paddingHorizontal: 20,
     paddingTop: 14,
-    paddingBottom: Platform.OS === 'android' ? 48 : 16,
     backgroundColor: '#FFFDF9',
     borderTopWidth: 1,
     borderTopColor: '#F0ECE4',

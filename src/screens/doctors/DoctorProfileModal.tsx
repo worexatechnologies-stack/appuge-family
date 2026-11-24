@@ -12,6 +12,7 @@ import {
 import { Colors, Fonts } from '../../theme/colors';
 import { DoctorProfile } from '../../data/doctorsData';
 import { AppIcon } from '../../components/common/AppIcon';
+import { useAppInsets } from '../../theme/responsive';
 
 interface DoctorProfileModalProps {
   doctor: DoctorProfile | null;
@@ -26,6 +27,9 @@ export const DoctorProfileModal: React.FC<DoctorProfileModalProps> = ({
   onClose,
   onBookAppointment,
 }) => {
+  const { bottom: bottomInset } = useAppInsets();
+  const safeBottomPadding = Math.max(bottomInset, Platform.OS === 'android' ? 52 : 20);
+
   if (!doctor) return null;
 
   return (
@@ -241,7 +245,7 @@ export const DoctorProfileModal: React.FC<DoctorProfileModalProps> = ({
         </ScrollView>
 
         {/* Sticky Bottom Booking Action */}
-        <View style={styles.bottomBar}>
+        <View style={[styles.bottomBar, { paddingBottom: safeBottomPadding }]}>
           <View style={styles.feeColumn}>
             <Text style={styles.bottomFeeLabel}>CONSULTATION FROM</Text>
             <Text style={styles.bottomFeeValue}>₹{doctor.onlineFee}</Text>
@@ -506,7 +510,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#FAF4EB',
     paddingHorizontal: 20,
     paddingTop: 14,
-    paddingBottom: Platform.OS === 'android' ? 68 : 20,
     borderTopWidth: 1,
     borderTopColor: 'rgba(44, 64, 53, 0.08)',
     elevation: 20,
@@ -515,17 +518,35 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 8,
   },
-  feeColumn: {},
-  bottomFeeLabel: { fontSize: 8, fontWeight: '800', letterSpacing: 1, color: Colors.textMuted },
-  bottomFeeValue: { fontSize: 18, fontWeight: '800', color: Colors.forestDark },
+  feeColumn: {
+    justifyContent: 'center',
+  },
+  bottomFeeLabel: {
+    fontSize: 9,
+    fontWeight: '800',
+    letterSpacing: 1,
+    color: Colors.sageDark,
+    marginBottom: 2,
+  },
+  bottomFeeValue: {
+    fontSize: 20,
+    fontWeight: '800',
+    color: Colors.forestDark,
+    fontFamily: Fonts.serif,
+  },
   bookButton: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
     backgroundColor: Colors.forestDark,
     paddingHorizontal: 22,
-    paddingVertical: 12,
+    paddingVertical: 13,
     borderRadius: 24,
+    elevation: 2,
+    shadowColor: '#16281E',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
   },
   bookButtonText: { fontSize: 13, fontWeight: '700', color: '#FFFDF9' },
 });

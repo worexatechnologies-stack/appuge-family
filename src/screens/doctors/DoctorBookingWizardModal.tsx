@@ -18,6 +18,7 @@ import {
   calculateDoctorAppointmentPrice,
 } from '../../data/doctorsData';
 import { AppIcon } from '../../components/common/AppIcon';
+import { useAppInsets } from '../../theme/responsive';
 
 interface DoctorBookingWizardModalProps {
   doctor: DoctorProfile | null;
@@ -36,6 +37,9 @@ export const DoctorBookingWizardModal: React.FC<DoctorBookingWizardModalProps> =
   onBookingSubmitted,
   user,
 }) => {
+  const { bottom: bottomInset } = useAppInsets();
+  const safeBottomPadding = Math.max(bottomInset, Platform.OS === 'android' ? 52 : 20);
+
   const [step, setStep] = useState<1 | 2 | 3 | 4 | 5>(1);
 
   // Step 1: Consultation Type
@@ -509,7 +513,7 @@ export const DoctorBookingWizardModal: React.FC<DoctorBookingWizardModalProps> =
 
         {/* Footer Buttons for Steps 1-4 */}
         {step < 5 && (
-          <View style={styles.footer}>
+          <View style={[styles.footer, { paddingBottom: safeBottomPadding }]}>
             {step > 1 && (
               <TouchableOpacity
                 style={styles.prevBtn}
@@ -816,7 +820,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#FAF4EB',
     paddingHorizontal: 20,
     paddingTop: 14,
-    paddingBottom: Platform.OS === 'android' ? 68 : 20,
     borderTopWidth: 1,
     borderTopColor: 'rgba(44, 64, 53, 0.08)',
     elevation: 20,

@@ -8,12 +8,16 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { useAppInsets } from '../../../theme/responsive';
 
 interface Props {
   onBegin: () => void;
 }
 
 export const CareConciergeIntro: React.FC<Props> = ({ onBegin }) => {
+  const { bottom: bottomInset } = useAppInsets();
+  const safeBottomPadding = Math.max(bottomInset, Platform.OS === 'android' ? 44 : 16);
+
   return (
     <View style={styles.container}>
       <ScrollView
@@ -64,7 +68,7 @@ export const CareConciergeIntro: React.FC<Props> = ({ onBegin }) => {
       </ScrollView>
 
       {/* Bottom CTA Action Bar */}
-      <View style={styles.bottomBar}>
+      <View style={[styles.bottomBar, { paddingBottom: safeBottomPadding }]}>
         <TouchableOpacity
           style={styles.primaryBtn}
           activeOpacity={0.88}
@@ -161,7 +165,6 @@ const styles = StyleSheet.create({
   bottomBar: {
     paddingHorizontal: 20,
     paddingTop: 14,
-    paddingBottom: Platform.OS === 'android' ? 48 : 16,
     backgroundColor: '#FFFDF9',
     borderTopWidth: 1,
     borderTopColor: '#F0ECE4',
