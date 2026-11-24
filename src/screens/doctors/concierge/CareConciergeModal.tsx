@@ -1612,7 +1612,7 @@ const styles = StyleSheet.create({
   bottomBar: {
     paddingHorizontal: 20,
     paddingTop: 14,
-    paddingBottom: Platform.OS === 'android' ? 28 : 16,
+    paddingBottom: Platform.OS === 'android' ? 48 : 16,
     backgroundColor: '#FFFDF9',
     borderTopWidth: 1,
     borderTopColor: '#F0ECE4',

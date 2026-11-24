@@ -560,7 +560,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   scroll: { flex: 1 },
-  content: { paddingBottom: 40 },
+  content: { paddingBottom: Platform.OS === 'android' ? 140 : 80 },
 
   stepContainer: { paddingHorizontal: 20, paddingTop: 18 },
   stepEyebrow: {
@@ -815,8 +815,8 @@ const styles = StyleSheet.create({
     gap: 12,
     backgroundColor: '#FAF4EB',
     paddingHorizontal: 20,
-    paddingTop: 12,
-    paddingBottom: Platform.OS === 'android' ? 36 : 14,
+    paddingTop: 14,
+    paddingBottom: Platform.OS === 'android' ? 68 : 20,
     borderTopWidth: 1,
     borderTopColor: 'rgba(44, 64, 53, 0.08)',
     elevation: 20,

@@ -237,7 +237,7 @@ export const DoctorProfileModal: React.FC<DoctorProfileModalProps> = ({
             ))}
           </View>
 
-          <View style={{ height: 100 }} />
+          <View style={{ height: Platform.OS === 'android' ? 140 : 100 }} />
         </ScrollView>
 
         {/* Sticky Bottom Booking Action */}
@@ -505,8 +505,8 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     backgroundColor: '#FAF4EB',
     paddingHorizontal: 20,
-    paddingTop: 12,
-    paddingBottom: Platform.OS === 'android' ? 36 : 14,
+    paddingTop: 14,
+    paddingBottom: Platform.OS === 'android' ? 68 : 20,
     borderTopWidth: 1,
     borderTopColor: 'rgba(44, 64, 53, 0.08)',
     elevation: 20,
