@@ -192,6 +192,25 @@ export const DoctorProfileModal: React.FC<DoctorProfileModalProps> = ({
             </View>
           </View>
 
+          {/* Availability Calendar & Next Open Slots */}
+          <View style={styles.card}>
+            <Text style={styles.cardEyebrow}>UPCOMING AVAILABILITY</Text>
+            <Text style={styles.sectionSubtitle}>Next open consultation days</Text>
+            <View style={styles.availabilityRow}>
+              {doctor.availability.slice(0, 3).map((avail, idx) => (
+                <View key={idx} style={styles.availDayCard}>
+                  <Text style={styles.availDayLabel}>{avail.dayLabel}</Text>
+                  <Text style={styles.availDateText}>{avail.displayDate}</Text>
+                  <View style={styles.availSlotsTag}>
+                    <Text style={styles.availSlotsTagText}>
+                      {avail.slots.filter(s => s.available).length} Slots Open
+                    </Text>
+                  </View>
+                </View>
+              ))}
+            </View>
+          </View>
+
           {/* Verified Patient Reviews */}
           <View style={styles.card}>
             <View style={styles.reviewHeaderRow}>
@@ -412,6 +431,46 @@ const styles = StyleSheet.create({
   clinicHours: { fontSize: 10, color: Colors.sage, marginTop: 2, fontWeight: '600' },
   clinicNote: { fontSize: 9, color: Colors.terracotta, marginTop: 4 },
   formatPrice: { fontSize: 14, fontWeight: '800', color: Colors.forestDark },
+
+  // Availability Row
+  availabilityRow: {
+    flexDirection: 'row',
+    gap: 8,
+    marginTop: 8,
+  },
+  availDayCard: {
+    flex: 1,
+    backgroundColor: Colors.creamLight,
+    borderRadius: 10,
+    padding: 10,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(44,64,53,0.06)',
+  },
+  availDayLabel: {
+    fontSize: 9.5,
+    fontWeight: '800',
+    color: Colors.sageDark,
+    marginBottom: 2,
+  },
+  availDateText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: Colors.forestDark,
+    marginBottom: 6,
+    textAlign: 'center',
+  },
+  availSlotsTag: {
+    backgroundColor: '#EAF2EC',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 6,
+  },
+  availSlotsTagText: {
+    fontSize: 8.5,
+    fontWeight: '800',
+    color: '#1B5E20',
+  },
 
   reviewHeaderRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
   reviewCountBadge: { fontSize: 10, color: Colors.sage, fontWeight: '700' },

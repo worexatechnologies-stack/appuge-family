@@ -32,6 +32,19 @@ export interface DoctorSpeciality {
   iconName: string;
   doctorCount: number;
   bgTone: string;
+  image?: ImageSourcePropType;
+  editorialTag?: string;
+  accentColor?: string;
+}
+
+export interface FamilyJourneyNeed {
+  id: string;
+  title: string;
+  subtitle: string;
+  kicker: string;
+  specialityId: DoctorSpecialityId;
+  image: ImageSourcePropType;
+  badge: string;
 }
 
 export interface DoctorReview {
@@ -147,6 +160,9 @@ export const DOCTOR_SPECIALITIES: DoctorSpeciality[] = [
     iconName: 'baby',
     doctorCount: 4,
     bgTone: '#EAF2EC',
+    image: imgBaby,
+    editorialTag: 'INFANT HEALTH',
+    accentColor: '#2C4035',
   },
   {
     id: 'gynecologist',
@@ -156,6 +172,9 @@ export const DOCTOR_SPECIALITIES: DoctorSpeciality[] = [
     iconName: 'mother',
     doctorCount: 3,
     bgTone: '#FAF4EB',
+    image: imgMother,
+    editorialTag: 'MATERNAL RECOVERY',
+    accentColor: '#C86D51',
   },
   {
     id: 'obstetrician',
@@ -165,6 +184,9 @@ export const DOCTOR_SPECIALITIES: DoctorSpeciality[] = [
     iconName: 'heart',
     doctorCount: 3,
     bgTone: '#F3E7DC',
+    image: require('../assets/images/03.jpg'),
+    editorialTag: 'PREGNANCY & BIRTH',
+    accentColor: '#16281E',
   },
   {
     id: 'lactation',
@@ -174,6 +196,9 @@ export const DOCTOR_SPECIALITIES: DoctorSpeciality[] = [
     iconName: 'sparkle',
     doctorCount: 3,
     bgTone: '#E8EDE0',
+    image: imgDual,
+    editorialTag: 'FEEDING RITUALS',
+    accentColor: '#5E7A63',
   },
   {
     id: 'dermatologist',
@@ -183,6 +208,9 @@ export const DOCTOR_SPECIALITIES: DoctorSpeciality[] = [
     iconName: 'shield',
     doctorCount: 2,
     bgTone: '#EEEADF',
+    image: imgRitual,
+    editorialTag: 'BABY SKIN CARE',
+    accentColor: '#8C6239',
   },
   {
     id: 'nutritionist',
@@ -192,6 +220,9 @@ export const DOCTOR_SPECIALITIES: DoctorSpeciality[] = [
     iconName: 'leaf',
     doctorCount: 2,
     bgTone: '#EAF2EC',
+    image: require('../assets/images/nutrition_hero.png'),
+    editorialTag: 'NOURISHMENT & WEANING',
+    accentColor: '#2E7D32',
   },
   {
     id: 'development',
@@ -201,6 +232,9 @@ export const DOCTOR_SPECIALITIES: DoctorSpeciality[] = [
     iconName: 'star',
     doctorCount: 2,
     bgTone: '#FAF4EB',
+    image: require('../assets/images/hero_newborn.jpg'),
+    editorialTag: 'GROWTH MILESTONES',
+    accentColor: '#D4A373',
   },
   {
     id: 'physician',
@@ -210,6 +244,66 @@ export const DOCTOR_SPECIALITIES: DoctorSpeciality[] = [
     iconName: 'stethoscope',
     doctorCount: 3,
     bgTone: '#F2E9E4',
+    image: imgClinical,
+    editorialTag: 'FAMILY WELLNESS',
+    accentColor: '#16281E',
+  },
+];
+
+export const FAMILY_JOURNEY_NEEDS: FamilyJourneyNeed[] = [
+  {
+    id: 'journey-newborn',
+    title: 'The First 40 Days',
+    subtitle: 'Gentle colic, jaundice, and newborn transition care.',
+    kicker: 'NEWBORN TRANQUILITY',
+    specialityId: 'pediatrician',
+    image: require('../assets/images/hero_newborn.jpg'),
+    badge: '0–3 Months',
+  },
+  {
+    id: 'journey-postpartum',
+    title: 'Sacred Postpartum Recovery',
+    subtitle: 'Pelvic health, incision healing, and maternal restore.',
+    kicker: 'MATERNAL SANCTUARY',
+    specialityId: 'gynecologist',
+    image: imgMother,
+    badge: 'Post-Delivery',
+  },
+  {
+    id: 'journey-breastfeeding',
+    title: 'Gentle Latch & Lactation',
+    subtitle: 'Nipple healing, supply confidence, and weaning.',
+    kicker: 'FEEDING RITUALS',
+    specialityId: 'lactation',
+    image: imgDual,
+    badge: 'Certified IBCLC',
+  },
+  {
+    id: 'journey-pregnancy',
+    title: 'Antenatal & Trimester Care',
+    subtitle: 'Growth scans, high-risk screening, and birth planning.',
+    kicker: 'PREGNANCY JOURNEY',
+    specialityId: 'obstetrician',
+    image: require('../assets/images/03.jpg'),
+    badge: 'Trimesters 1–3',
+  },
+  {
+    id: 'journey-skin',
+    title: 'Sensitive Baby Skin Care',
+    subtitle: 'Cradle cap, eczema, heat rashes, and barrier rituals.',
+    kicker: 'PEDIATRIC DERMATOLOGY',
+    specialityId: 'dermatologist',
+    image: imgRitual,
+    badge: 'Safe Formulations',
+  },
+  {
+    id: 'journey-nutrition',
+    title: 'First Solids & Child Nutrition',
+    subtitle: 'Traditional nourishing broths, galactagogues, and weight gain.',
+    kicker: 'HOLISTIC NUTRITION',
+    specialityId: 'nutritionist',
+    image: require('../assets/images/nutrition_hero.png'),
+    badge: 'Baby-Led Weaning',
   },
 ];
 
