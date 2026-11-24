@@ -1,0 +1,570 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>APPUGE — Heartbeats Wrapped With Love</title>
+    <style>
+      :root {
+        --cream: #fffdf9;
+        --warm: #faf4eb;
+        --forest-dark: #16281e;
+        --forest: #2c4035;
+        --sage: #5e7a63;
+        --pale-sage: #eaf2ec;
+        --blush: #d4a373;
+        --terracotta: #c86d51;
+        --ink: #25352b;
+        --muted: #748a7d;
+        --line: #e7dfd3;
+      }
+
+      * { box-sizing: border-box; }
+
+      body {
+        margin: 0;
+        padding: 46px;
+        color: var(--cream);
+        background: #281a16;
+        font-family: Arial, Helvetica, sans-serif;
+      }
+
+      .board {
+        max-width: 1540px;
+        margin: 0 auto 54px;
+        padding: 30px 36px 36px;
+        overflow: hidden;
+        color: var(--ink);
+        background: #f3eee5;
+        border-radius: 22px;
+        box-shadow: 0 30px 75px rgba(0, 0, 0, .24);
+      }
+
+      .board-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        margin: 0 4px 26px;
+      }
+
+      .brandline {
+        color: var(--sage);
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+      }
+
+      h1 {
+        margin: 7px 0 0;
+        color: var(--forest-dark);
+        font: 40px/1 Georgia, "Times New Roman", serif;
+        letter-spacing: -1.5px;
+      }
+
+      .board-note {
+        color: #77796e;
+        font: italic 15px Georgia, "Times New Roman", serif;
+      }
+
+      .screens {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 30px;
+        align-items: start;
+      }
+
+      .mockup { min-width: 0; }
+
+      .screen-label {
+        display: flex;
+        justify-content: space-between;
+        margin: 0 4px 10px;
+        color: var(--sage);
+        font-size: 9px;
+        font-weight: 700;
+        letter-spacing: 1.4px;
+        text-transform: uppercase;
+      }
+
+      .phone {
+        position: relative;
+        width: min(100%, 340px);
+        aspect-ratio: 9 / 19.35;
+        margin: 0 auto;
+        padding: 8px;
+        overflow: hidden;
+        background: #1b211d;
+        border: 1px solid #59605a;
+        border-radius: 38px;
+        box-shadow: 0 18px 34px rgba(28, 29, 23, .24), inset 0 0 0 2px #111813;
+      }
+
+      .screen {
+        position: relative;
+        height: 100%;
+        overflow: hidden;
+        color: var(--ink);
+        background: var(--cream);
+        border-radius: 30px;
+      }
+
+      .status {
+        height: 27px;
+        padding: 8px 15px 0;
+        display: flex;
+        justify-content: space-between;
+        color: var(--forest-dark);
+        font-size: 8px;
+        font-weight: 700;
+      }
+
+      .island {
+        position: absolute;
+        top: 8px;
+        left: 50%;
+        width: 62px;
+        height: 16px;
+        transform: translateX(-50%);
+        background: #111;
+        border-radius: 10px;
+      }
+
+      .appbar {
+        height: 45px;
+        padding: 4px 14px 8px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 1px solid #eee8df;
+      }
+
+      .wordmark {
+        color: var(--forest-dark);
+        font: 22px/1 Georgia, "Times New Roman", serif;
+        letter-spacing: -1px;
+      }
+
+      .tagline {
+        margin-top: 3px;
+        color: var(--sage);
+        font-size: 5px;
+        font-weight: 700;
+        letter-spacing: 1px;
+      }
+
+      .app-action {
+        color: var(--forest);
+        font-size: 8px;
+        font-weight: 700;
+        letter-spacing: .7px;
+      }
+
+      .page {
+        height: calc(100% - 112px);
+        padding: 14px 15px 18px;
+        overflow: hidden;
+      }
+
+      .eyebrow {
+        margin: 0 0 7px;
+        color: var(--sage);
+        font-size: 6px;
+        font-weight: 700;
+        letter-spacing: 1.35px;
+      }
+
+      .headline {
+        margin: 0;
+        color: var(--forest-dark);
+        font: 25px/1.03 Georgia, "Times New Roman", serif;
+        letter-spacing: -.55px;
+      }
+
+      .italic { color: var(--forest); font-style: italic; }
+      .caption { margin: 7px 0 12px; color: #65756a; font-size: 7px; line-height: 1.5; }
+
+      .hero {
+        position: relative;
+        height: 42%;
+        min-height: 175px;
+        overflow: hidden;
+        background: var(--forest);
+      }
+
+      .hero img, .photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+      .hero img { object-position: 45% 45%; }
+
+      .hero::after {
+        position: absolute;
+        inset: 30% 0 0;
+        content: "";
+        background: linear-gradient(transparent, rgba(17, 29, 21, .78));
+      }
+
+      .hero-copy {
+        position: absolute;
+        z-index: 1;
+        left: 13px;
+        right: 12px;
+        bottom: 12px;
+        color: var(--cream);
+      }
+
+      .hero-kicker { font-size: 6px; font-weight: 700; letter-spacing: 1.1px; }
+      .hero-title { margin: 5px 0 9px; font: 19px/1.08 Georgia, "Times New Roman", serif; }
+      .hero-cta {
+        display: inline-block;
+        padding: 7px 9px;
+        color: var(--forest-dark);
+        background: var(--cream);
+        font-size: 6px;
+        font-weight: 700;
+      }
+
+      .sectionline {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        margin: 14px 0 8px;
+      }
+
+      .section-title { color: var(--forest-dark); font: 15px Georgia, "Times New Roman", serif; }
+      .section-more { color: var(--terracotta); font-size: 6px; font-weight: 700; }
+
+      .tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; }
+      .tile {
+        min-height: 54px;
+        padding: 8px;
+        background: var(--pale-sage);
+        border-radius: 13px 2px 13px 2px;
+      }
+      .tile:nth-child(2) { background: #f3e7dc; }
+      .tile:nth-child(3) { background: #e8ede0; }
+      .tile:nth-child(4) { background: #eeeade; }
+      .tile-num { color: var(--sage); font: 10px Georgia, "Times New Roman", serif; }
+      .tile-name { margin-top: 7px; color: var(--forest-dark); font: 10px Georgia, "Times New Roman", serif; }
+      .tile-note { margin-top: 3px; color: #728075; font-size: 5px; }
+
+      .feature-image {
+        height: 36%;
+        min-height: 145px;
+        margin: 11px 0;
+        overflow: hidden;
+        border-radius: 2px 2px 22px 2px;
+      }
+
+      .feature-card {
+        padding: 11px;
+        color: var(--cream);
+        background: var(--forest-dark);
+        border-radius: 16px 2px 16px 2px;
+      }
+      .feature-card .eyebrow { color: #ccd9ca; }
+      .feature-card h3 { margin: 5px 0; font: 16px/1.08 Georgia, "Times New Roman", serif; }
+      .feature-card p { margin: 5px 0 0; color: rgba(255,253,249,.75); font-size: 6px; line-height: 1.45; }
+
+      .service-row {
+        display: grid;
+        grid-template-columns: 38% 1fr;
+        gap: 10px;
+        margin-top: 12px;
+        padding-bottom: 10px;
+        border-bottom: 1px solid var(--line);
+      }
+      .photo { height: 75px; overflow: hidden; border-radius: 15px 2px 15px 2px; }
+      .row-num { color: var(--terracotta); font: 13px Georgia, "Times New Roman", serif; }
+      .row-title { margin: 4px 0; color: var(--forest-dark); font: 12px Georgia, "Times New Roman", serif; }
+      .row-note { color: #758177; font-size: 6px; line-height: 1.4; }
+
+      .food-list { margin-top: 7px; }
+      .food-row {
+        display: grid;
+        grid-template-columns: 37px 1fr 12px;
+        gap: 8px;
+        align-items: center;
+        padding: 7px 0;
+        border-bottom: 1px solid var(--line);
+      }
+      .food-mark { height: 37px; display: grid; place-items: center; color: var(--forest); background: var(--pale-sage); font: 17px Georgia, "Times New Roman", serif; border-radius: 12px 2px 12px 2px; }
+      .food-row:nth-child(2) .food-mark { background: #f3e7dc; }
+      .food-row:nth-child(3) .food-mark { background: #e8ede0; }
+      .food-name { color: var(--forest-dark); font: 12px Georgia, "Times New Roman", serif; }
+      .food-desc { margin-top: 3px; color: #778278; font-size: 5px; }
+      .food-arrow { color: var(--terracotta); font-size: 11px; }
+
+      .doctor-intro {
+        margin: 10px 0 13px;
+        padding: 12px;
+        color: var(--cream);
+        background: var(--forest-dark);
+        border-radius: 18px 2px 18px 2px;
+      }
+      .doctor-intro .eyebrow { color: #c7d4c7; }
+      .doctor-intro h3 { margin: 4px 0; font: 16px Georgia, "Times New Roman", serif; }
+      .doctor-intro p { margin: 4px 0 0; color: rgba(255,253,249,.73); font-size: 6px; line-height: 1.5; }
+      .specialist { padding: 9px 0; border-bottom: 1px solid var(--line); }
+      .specialist-top { display: flex; align-items: center; gap: 8px; }
+      .monogram { width: 30px; height: 33px; display: grid; place-items: center; color: var(--forest); background: var(--pale-sage); font: italic 16px Georgia, "Times New Roman", serif; border-radius: 16px 2px 16px 2px; }
+      .specialist:nth-child(2) .monogram { background: #f3e7dc; }
+      .specialist:nth-child(3) .monogram { background: #e8ede0; }
+      .specialist:nth-child(4) .monogram { background: #eeeade; }
+      .specialist:nth-child(5) .monogram { background: #f2e9e4; }
+      .specialist-name { color: var(--forest-dark); font: 11px Georgia, "Times New Roman", serif; }
+      .specialist-focus { margin-top: 3px; color: var(--sage); font-size: 5px; font-weight: 700; letter-spacing: .6px; text-transform: uppercase; }
+      .specialist-detail { margin: 6px 0 0 38px; color: #6f7a71; font-size: 5px; line-height: 1.35; }
+
+      .form-label { margin: 10px 0 5px; color: var(--sage); font-size: 6px; font-weight: 700; letter-spacing: .8px; }
+      .form-choice { display: flex; flex-wrap: wrap; gap: 4px; }
+      .choice { padding: 6px 7px; color: var(--forest); border: 1px solid var(--line); font-size: 5px; }
+      .choice.active { color: var(--cream); background: var(--forest-dark); border-color: var(--forest-dark); }
+      .input { height: 28px; margin-top: 5px; padding: 8px; color: #738076; background: var(--warm); border: 1px solid var(--line); font-size: 6px; }
+      .date-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; }
+      .date { padding: 7px 4px; text-align: center; color: var(--forest-dark); background: var(--warm); border: 1px solid var(--line); font: 10px Georgia, "Times New Roman", serif; }
+      .date small { display: block; margin-bottom: 3px; color: var(--sage); font: 5px Arial, sans-serif; text-transform: uppercase; }
+      .date.active { background: var(--pale-sage); border-color: var(--sage); }
+      .submit { margin-top: 11px; padding: 9px; display: flex; justify-content: space-between; color: var(--cream); background: var(--forest-dark); font-size: 7px; font-weight: 700; }
+
+      .search { height: 31px; margin: 10px 0; padding: 8px; color: #869187; border: 1px solid var(--line); font-size: 6px; }
+      .faq { padding: 9px 0; border-bottom: 1px solid var(--line); }
+      .faq-category { color: var(--sage); font-size: 5px; font-weight: 700; letter-spacing: .7px; text-transform: uppercase; }
+      .faq-question { display: flex; justify-content: space-between; gap: 7px; margin-top: 4px; color: var(--forest-dark); font: 11px/1.2 Georgia, "Times New Roman", serif; }
+      .faq-answer { margin-top: 6px; color: #6e7c71; font-size: 5px; line-height: 1.45; }
+      .contact {
+        margin-top: 13px;
+        padding: 11px;
+        background: var(--pale-sage);
+        border-radius: 14px 2px 14px 2px;
+      }
+      .contact h3 { margin: 4px 0; color: var(--forest-dark); font: 15px Georgia, "Times New Roman", serif; }
+      .contact p { margin: 4px 0 8px; color: #6d7a70; font-size: 5px; }
+      .contact-actions { display: flex; gap: 5px; }
+      .contact-actions span { flex: 1; padding: 6px 4px; text-align: center; background: var(--cream); color: var(--forest); font-size: 5px; font-weight: 700; }
+
+      .tabbar {
+        position: absolute;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        height: 39px;
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+        padding: 0 5px 4px;
+        background: rgba(255,253,249,.97);
+        border-top: 1px solid #eee8df;
+      }
+      .tab { color: #8d978f; text-align: center; font-size: 5px; }
+      .tab-icon { display: block; margin-bottom: 3px; color: inherit; font: 12px Georgia, "Times New Roman", serif; }
+      .tab.active { color: var(--forest-dark); font-weight: 700; }
+      .tab.active .tab-icon { color: var(--terracotta); }
+
+      .board-foot {
+        display: flex;
+        justify-content: space-between;
+        margin: 22px 4px 0;
+        padding-top: 12px;
+        color: #74776d;
+        border-top: 1px solid #ded7cb;
+        font-size: 8px;
+        letter-spacing: 1px;
+      }
+
+      @media (max-width: 900px) {
+        body { padding: 20px; }
+        .board { padding: 24px 18px; }
+        .screens { gap: 14px; }
+        .board-head { align-items: flex-start; flex-direction: column; gap: 8px; }
+        h1 { font-size: 32px; }
+        .phone { padding: 5px; border-radius: 27px; }
+        .screen { border-radius: 22px; }
+        .status { height: 21px; padding: 7px 10px 0; }
+        .island { top: 6px; width: 49px; height: 12px; }
+        .appbar { height: 38px; }
+        .page { height: calc(100% - 96px); padding: 11px 10px; }
+        .headline { font-size: 19px; }
+        .tabbar { height: 34px; }
+      }
+
+      @media (max-width: 620px) {
+        body { padding: 10px; }
+        .board { margin-bottom: 18px; padding: 20px 12px; border-radius: 15px; }
+        .screens { grid-template-columns: 1fr; gap: 24px; }
+        .phone { width: min(72vw, 340px); }
+        .board-note { font-size: 13px; }
+      }
+
+      @media print {
+        body { padding: 0; background: white; }
+        .board { max-width: none; margin: 0; border-radius: 0; box-shadow: none; break-after: page; }
+        .phone { width: 300px; }
+      }
+    </style>
+  </head>
+  <body>
+    <section class="board">
+      <header class="board-head">
+        <div>
+          <div class="brandline">APPUGE · Heartbeats wrapped with love</div>
+          <h1>A gentler beginning.</h1>
+        </div>
+        <div class="board-note">An editorial care journal for the first 40 days and beyond.</div>
+      </header>
+      <div class="screens">
+        <article class="mockup">
+          <div class="screen-label"><span>01 · Home</span><span>01 / 06</span></div>
+          <div class="phone"><div class="screen">
+            <div class="island"></div>
+            <div class="status"><span>9:41</span><span>●  ◔  ▰</span></div>
+            <div class="appbar"><div><div class="wordmark">appuge</div><div class="tagline">HEARTBEATS WRAPPED WITH LOVE</div></div><div class="app-action">SIGN IN</div></div>
+            <div class="page">
+              <div class="eyebrow">A NOTE FOR YOU · BENGALURU</div>
+              <h2 class="headline">Good morning,<br><span class="italic">mama.</span></h2>
+              <p class="caption">This season is yours, too. We’re here for both of you.</p>
+              <div class="hero">
+                <img src="../src/assets/images/03.jpg" alt="Indian mother holding her baby">
+                <div class="hero-copy"><div class="hero-kicker">THE APPUGE SANCTUARY</div><div class="hero-title">A gentler beginning<br>to motherhood.</div><span class="hero-cta">Begin your care journey　↗</span></div>
+              </div>
+              <div class="sectionline"><span class="section-title">A little help, just here.</span><span class="section-more">✳</span></div>
+              <div class="tiles">
+                <div class="tile"><div class="tile-num">01</div><div class="tile-name">Mother care</div><div class="tile-note">Rest & restore</div></div>
+                <div class="tile"><div class="tile-num">02</div><div class="tile-name">Baby care</div><div class="tile-note">Little ones, held close</div></div>
+                <div class="tile"><div class="tile-num">03</div><div class="tile-name">Ayurvedic food</div><div class="tile-note">Nourishment from home</div></div>
+                <div class="tile"><div class="tile-num">04</div><div class="tile-name">Expert doctors</div><div class="tile-note">A trusted circle</div></div>
+              </div>
+            </div>
+            <nav class="tabbar"><div class="tab active"><span class="tab-icon">⌂</span>Home</div><div class="tab"><span class="tab-icon">◇</span>Services</div><div class="tab"><span class="tab-icon">◌</span>Nutrition</div><div class="tab"><span class="tab-icon">✳</span>Doctors</div><div class="tab"><span class="tab-icon">?</span>Help</div></nav>
+          </div></div>
+        </article>
+
+        <article class="mockup">
+          <div class="screen-label"><span>02 · Services</span><span>02 / 06</span></div>
+          <div class="phone"><div class="screen">
+            <div class="island"></div>
+            <div class="status"><span>9:41</span><span>●  ◔  ▰</span></div>
+            <div class="appbar"><div><div class="wordmark">appuge</div><div class="tagline">HEARTBEATS WRAPPED WITH LOVE</div></div><div class="app-action">BOOK ↗</div></div>
+            <div class="page">
+              <div class="eyebrow">THE APPUGE EDIT · 01—04</div>
+              <h2 class="headline">Care, thoughtfully<br><span class="italic">chosen.</span></h2>
+              <p class="caption">A circle of care for the days that change everything.</p>
+              <div class="form-choice"><span class="choice active">Everything</span><span class="choice">Mother</span><span class="choice">Baby</span><span class="choice">Together</span></div>
+              <div class="feature-image photo"><img src="../src/assets/images/03.jpg" alt="A mother and newborn at home"></div>
+              <div class="feature-card"><div class="eyebrow">01 · MOST CHOSEN · 30–45 DAYS</div><h3>Postnatal<br>Sanctuary</h3><p>Restoring strength, with a little more room to breathe.</p></div>
+              <div class="service-row"><div class="photo"><img src="../src/assets/images/02.jpg" alt="A mother with her baby"></div><div><div class="row-num">02</div><div class="row-title">Newborn Care</div><div class="row-note">Gentle, hygienic & loving hands</div><div class="section-more">EXPLORE CARE ↗</div></div></div>
+              <div class="service-row"><div class="photo"><img src="../src/assets/images/caregiver_hero.png" alt="Mother and baby sharing a quiet moment"></div><div><div class="row-num">03</div><div class="row-title">Mother & baby, together</div><div class="row-note">A softer start for your family</div></div></div>
+            </div>
+            <nav class="tabbar"><div class="tab"><span class="tab-icon">⌂</span>Home</div><div class="tab active"><span class="tab-icon">◇</span>Services</div><div class="tab"><span class="tab-icon">◌</span>Nutrition</div><div class="tab"><span class="tab-icon">✳</span>Doctors</div><div class="tab"><span class="tab-icon">?</span>Help</div></nav>
+          </div></div>
+        </article>
+
+        <article class="mockup">
+          <div class="screen-label"><span>03 · Nutrition</span><span>03 / 06</span></div>
+          <div class="phone"><div class="screen">
+            <div class="island"></div>
+            <div class="status"><span>9:41</span><span>●  ◔  ▰</span></div>
+            <div class="appbar"><div><div class="wordmark">appuge</div><div class="tagline">HEARTBEATS WRAPPED WITH LOVE</div></div><div class="app-action">BOOK ↗</div></div>
+            <div class="page">
+              <div class="eyebrow">FROM OUR KITCHEN · WITH LOVE</div>
+              <h2 class="headline">Food as sacred<br><span class="italic">medicine.</span></h2>
+              <p class="caption">Old recipes that remind the body how to feel at home.</p>
+              <div class="feature-image photo"><img src="../src/assets/images/nutrition_hero.png" alt="Fresh ingredients and herbs"></div>
+              <div class="caption" style="font:italic 10px Georgia,serif">Prepared fresh, delivered warm, and thoughtfully made for your season.</div>
+              <div class="sectionline"><span class="section-title">Nourishment, by ritual.</span><span class="section-more">✳</span></div>
+              <div class="food-list">
+                <div class="food-row"><div class="food-mark">◒</div><div><div class="food-name">Ragi porridge</div><div class="food-desc">Slow mornings, gently nourished.</div></div><div class="food-arrow">↗</div></div>
+                <div class="food-row"><div class="food-mark">✳</div><div><div class="food-name">Gondh halwa</div><div class="food-desc">A little warmth, made with care.</div></div><div class="food-arrow">↗</div></div>
+                <div class="food-row"><div class="food-mark">◉</div><div><div class="food-name">Traditional Indian thali</div><div class="food-desc">A generous plate for healing.</div></div><div class="food-arrow">↗</div></div>
+                <div class="food-row"><div class="food-mark">◌</div><div><div class="food-name">Herbal kashayams</div><div class="food-desc">A familiar cup, served warm.</div></div><div class="food-arrow">↗</div></div>
+              </div>
+            </div>
+            <nav class="tabbar"><div class="tab"><span class="tab-icon">⌂</span>Home</div><div class="tab"><span class="tab-icon">◇</span>Services</div><div class="tab active"><span class="tab-icon">◌</span>Nutrition</div><div class="tab"><span class="tab-icon">✳</span>Doctors</div><div class="tab"><span class="tab-icon">?</span>Help</div></nav>
+          </div></div>
+        </article>
+      </div>
+      <footer class="board-foot"><span>APPUGE · BENGALURU</span><span>01 — CARE, NOURISHMENT & HOME</span><span>DESIGN JOURNAL</span></footer>
+    </section>
+
+    <section class="board">
+      <header class="board-head">
+        <div>
+          <div class="brandline">APPUGE · Heartbeats wrapped with love</div>
+          <h1>Care, held close.</h1>
+        </div>
+        <div class="board-note">Reassurance for the questions, people and plans that matter.</div>
+      </header>
+      <div class="screens">
+        <article class="mockup">
+          <div class="screen-label"><span>04 · Doctors</span><span>04 / 06</span></div>
+          <div class="phone"><div class="screen">
+            <div class="island"></div>
+            <div class="status"><span>9:41</span><span>●  ◔  ▰</span></div>
+            <div class="appbar"><div><div class="wordmark">appuge</div><div class="tagline">HEARTBEATS WRAPPED WITH LOVE</div></div><div class="app-action">BOOK ↗</div></div>
+            <div class="page">
+              <div class="eyebrow">A CIRCLE OF CLINICAL CARE · BENGALURU</div>
+              <h2 class="headline">Care you can<br><span class="italic">trust.</span></h2>
+              <p class="caption">The right person to ask, and a little more peace of mind.</p>
+              <div class="doctor-intro"><div class="eyebrow">THE APPUGE STANDARD</div><h3>Expertise, with a gentler touch.</h3><p>Care is matched to your needs and delivered in a way that feels right for your family.</p></div>
+              <div class="sectionline"><span class="section-title">Specialists, thoughtfully matched.</span><span class="section-more">05</span></div>
+              <div class="specialist"><div class="specialist-top"><div class="monogram">N</div><div><div class="specialist-focus">Newborn beginnings</div><div class="specialist-name">Neonatologists</div></div></div><div class="specialist-detail">Guidance for your baby’s earliest days, with calm, considered follow-up.</div></div>
+              <div class="specialist"><div class="specialist-top"><div class="monogram">P</div><div><div class="specialist-focus">Little ones, well</div><div class="specialist-name">Pediatricians</div></div></div><div class="specialist-detail">Thoughtful support for feeding, newborn checks and the questions in between.</div></div>
+              <div class="specialist"><div class="specialist-top"><div class="monogram">O</div><div><div class="specialist-focus">Your recovery, too</div><div class="specialist-name">Obstetricians</div></div></div><div class="specialist-detail">Postpartum guidance and follow-up for the changes your body is moving through.</div></div>
+              <div class="specialist"><div class="specialist-top"><div class="monogram">L</div><div><div class="specialist-focus">Feeding, with confidence</div><div class="specialist-name">Lactation consultants</div></div></div></div>
+            </div>
+            <nav class="tabbar"><div class="tab"><span class="tab-icon">⌂</span>Home</div><div class="tab"><span class="tab-icon">◇</span>Services</div><div class="tab"><span class="tab-icon">◌</span>Nutrition</div><div class="tab active"><span class="tab-icon">✳</span>Doctors</div><div class="tab"><span class="tab-icon">?</span>Help</div></nav>
+          </div></div>
+        </article>
+
+        <article class="mockup">
+          <div class="screen-label"><span>05 · Booking</span><span>05 / 06</span></div>
+          <div class="phone"><div class="screen">
+            <div class="island"></div>
+            <div class="status"><span>9:41</span><span>●  ◔  ▰</span></div>
+            <div class="appbar"><div><div class="wordmark">appuge</div><div class="tagline">HEARTBEATS WRAPPED WITH LOVE</div></div><div class="app-action">×</div></div>
+            <div class="page">
+              <div class="eyebrow">A NOTE TO YOUR CARE TEAM</div>
+              <h2 class="headline">Your care<br><span class="italic">begins here.</span></h2>
+              <p class="caption">A few details, then we’ll take it from here.</p>
+              <div class="form-label">01 · THE CARE YOU’RE LOOKING FOR</div>
+              <div class="form-choice"><span class="choice active">Mother & baby</span><span class="choice">Postnatal</span><span class="choice">Newborn</span><span class="choice">Doctor</span></div>
+              <div class="form-label">02 · A LITTLE ABOUT YOU</div>
+              <div class="input">Your name</div><div class="input">Phone number</div>
+              <div class="form-label">03 · WHERE ARE YOU IN YOUR JOURNEY?</div>
+              <div class="form-choice"><span class="choice">Expecting</span><span class="choice active">First 40 days</span><span class="choice">1–6 months</span></div>
+              <div class="form-label">04 · YOUR BENGALURU NEIGHBOURHOOD</div>
+              <div class="form-choice"><span class="choice active">Indiranagar</span><span class="choice">Koramangala</span><span class="choice">Whitefield</span></div>
+              <div class="form-label">05 · A DAY THAT SUITS YOU</div>
+              <div class="date-row"><div class="date active"><small>Today</small>17 Nov</div><div class="date"><small>Wed</small>18 Nov</div><div class="date"><small>Thu</small>19 Nov</div></div>
+              <div class="form-label">ANYTHING ELSE YOU’D LIKE US TO KNOW?</div>
+              <div class="input" style="height:46px">A preference or question (optional)</div>
+              <div class="submit"><span>Send a care request</span><span>↗</span></div>
+            </div>
+          </div></div>
+        </article>
+
+        <article class="mockup">
+          <div class="screen-label"><span>06 · Help</span><span>06 / 06</span></div>
+          <div class="phone"><div class="screen">
+            <div class="island"></div>
+            <div class="status"><span>9:41</span><span>●  ◔  ▰</span></div>
+            <div class="appbar"><div><div class="wordmark">appuge</div><div class="tagline">HEARTBEATS WRAPPED WITH LOVE</div></div><div class="app-action">BOOK ↗</div></div>
+            <div class="page">
+              <div class="eyebrow">A LITTLE CLARITY, WHEN YOU NEED IT</div>
+              <h2 class="headline">Here for every<br><span class="italic">little question.</span></h2>
+              <p class="caption">Start wherever you are. We’ll take it one question at a time.</p>
+              <div class="search">⌕　Search a question or topic</div>
+              <div class="form-choice"><span class="choice active">All</span><span class="choice">Postpartum care</span><span class="choice">Baby care</span></div>
+              <div class="sectionline"><span class="section-title">Questions, answered.</span><span class="section-more">08</span></div>
+              <div class="faq"><div class="faq-category">ABOUT APPUGE</div><div class="faq-question"><span>How can Appuge support my family?</span><span>−</span></div><div class="faq-answer">A thoughtful blend of at-home maternal and newborn care, with support shaped around your family’s needs and routines.</div></div>
+              <div class="faq"><div class="faq-category">POSTPARTUM CARE</div><div class="faq-question"><span>What happens during the first 40 days?</span><span>+</span></div></div>
+              <div class="faq"><div class="faq-category">BABY & NEWBORN CARE</div><div class="faq-question"><span>Can I ask for help with feeding?</span><span>+</span></div></div>
+              <div class="faq"><div class="faq-category">NUTRITION & FOOD</div><div class="faq-question"><span>Can meals be tailored to my preferences?</span><span>+</span></div></div>
+              <div class="contact"><div class="eyebrow">STILL WONDERING ABOUT SOMETHING?</div><h3>We’re listening.</h3><p>A real person from our Bengaluru care team is happy to help.</p><div class="contact-actions"><span>WhatsApp ↗</span><span>Call us ○</span><span>Email ✉</span></div></div>
+            </div>
+            <nav class="tabbar"><div class="tab"><span class="tab-icon">⌂</span>Home</div><div class="tab"><span class="tab-icon">◇</span>Services</div><div class="tab"><span class="tab-icon">◌</span>Nutrition</div><div class="tab"><span class="tab-icon">✳</span>Doctors</div><div class="tab active"><span class="tab-icon">?</span>Help</div></nav>
+          </div></div>
+        </article>
+      </div>
+      <footer class="board-foot"><span>APPUGE · BENGALURU</span><span>02 — SPECIALISTS, BOOKING & REASSURANCE</span><span>DESIGN JOURNAL</span></footer>
+    </section>
+  </body>
+</html>
