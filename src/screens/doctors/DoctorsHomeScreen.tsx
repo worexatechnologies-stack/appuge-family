@@ -25,6 +25,9 @@ import { DoctorProfileModal } from './DoctorProfileModal';
 import { DoctorBookingWizardModal } from './DoctorBookingWizardModal';
 import { DoctorSearchModal } from './DoctorSearchModal';
 import { MyAppointmentsScreen } from './MyAppointmentsScreen';
+import { CareQuestionnaireModal } from './questionnaire/CareQuestionnaireModal';
+import { PersonalizedDoctorResultsModal } from './questionnaire/PersonalizedDoctorResultsModal';
+import { CareMatchingOutput } from '../../types/careQuestionnaire.types';
 import { notificationService } from '../../services/notificationService';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -52,6 +55,11 @@ export const DoctorsHomeScreen: React.FC<DoctorsHomeScreenProps> = ({
   const [selectedSpecialityFilter, setSelectedSpecialityFilter] =
     useState<DoctorSpecialityId | null>(null);
   const [showMyAppointments, setShowMyAppointments] = useState(false);
+
+  // Guided Care Questionnaire & Personalized Matching States
+  const [questionnaireVisible, setQuestionnaireVisible] = useState(false);
+  const [matchingResultsVisible, setMatchingResultsVisible] = useState(false);
+  const [matchingOutput, setMatchingOutput] = useState<CareMatchingOutput | null>(null);
 
   const handleBookingCreated = (newAppointment: DoctorAppointment) => {
     setAppointments(prev => [newAppointment, ...prev]);
@@ -231,8 +239,7 @@ export const DoctorsHomeScreen: React.FC<DoctorsHomeScreenProps> = ({
                   style={styles.heroActionBtn}
                   activeOpacity={0.9}
                   onPress={() => {
-                    setSelectedSpecialityFilter(null);
-                    setSearchVisible(true);
+                    setQuestionnaireVisible(true);
                   }}>
                   <Text style={styles.heroActionBtnText}>
                     Find Your Specialist
@@ -904,6 +911,36 @@ export const DoctorsHomeScreen: React.FC<DoctorsHomeScreenProps> = ({
         }}
         onBookDoctor={doc => {
           setSearchVisible(false);
+          setBookingDoctor(doc);
+        }}
+      />
+
+      {/* Guided Care Questionnaire */}
+      <CareQuestionnaireModal
+        visible={questionnaireVisible}
+        onClose={() => setQuestionnaireVisible(false)}
+        onComplete={(output, _answers) => {
+          setQuestionnaireVisible(false);
+          setMatchingOutput(output);
+          setMatchingResultsVisible(true);
+        }}
+      />
+
+      {/* Personalized Doctor Results */}
+      <PersonalizedDoctorResultsModal
+        visible={matchingResultsVisible}
+        output={matchingOutput}
+        onClose={() => setMatchingResultsVisible(false)}
+        onRetake={() => {
+          setMatchingResultsVisible(false);
+          setQuestionnaireVisible(true);
+        }}
+        onSelectDoctor={doc => {
+          setMatchingResultsVisible(false);
+          setSelectedDoctor(doc);
+        }}
+        onBookDoctor={doc => {
+          setMatchingResultsVisible(false);
           setBookingDoctor(doc);
         }}
       />
